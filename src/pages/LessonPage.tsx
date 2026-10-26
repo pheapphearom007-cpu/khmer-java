@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   findLessonBySlug,
   getAdjacentLessons,
+  CURRICULUM_MODULES,
 } from '../data/curriculum';
 import { useLanguage } from '../context/LanguageContext';
 import { useProgress } from '../context/ProgressContext';
@@ -11,6 +12,10 @@ import { OutputPanel } from '../components/editor/OutputPanel';
 import { QuizComponent } from '../components/quiz/QuizComponent';
 import { executionService } from '../services/executionService';
 import { ExecutionResult } from '../types';
+import { CurriculumSidebar } from '../components/layout/CurriculumSidebar';
+import { Button } from '../components/common/Button';
+import { Badge } from '../components/common/Badge';
+import { Card } from '../components/common/Card';
 import {
   BookOpen,
   Bookmark,
@@ -24,6 +29,7 @@ import {
   Lightbulb,
   Check,
   Trophy,
+  ListTree,
 } from 'lucide-react';
 
 export const LessonPage: React.FC = () => {
@@ -40,31 +46,37 @@ export const LessonPage: React.FC = () => {
 
   const lesson = findLessonBySlug(slug || '');
 
+  // Desktop sidebar collapse state & mobile drawer state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   // Track last lesson visited
-  React.useEffect(() => {
+  useEffect(() => {
     if (slug) {
       setLastLesson(slug);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [slug, setLastLesson]);
 
-  // Code runner state for the primary lesson example
+  // Code runner state for primary lesson example
   const [editorCode, setEditorCode] = useState(lesson?.examples[0]?.code || '');
   const [stdin, setStdin] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<ExecutionResult | null>(null);
 
-  // Exercise state
+  // Exercise runner state
   const [exerciseCode, setExerciseCode] = useState(lesson?.exercise?.starterCode || '');
   const [exerciseResult, setExerciseResult] = useState<ExecutionResult | null>(null);
   const [isExerciseRunning, setIsExerciseRunning] = useState(false);
   const [showExerciseSolution, setShowExerciseSolution] = useState(false);
   const [showExerciseHints, setShowExerciseHints] = useState(false);
 
-  // Update editor state when lesson changes
-  React.useEffect(() => {
+  // Reset editor states when lesson changes
+  useEffect(() => {
     if (lesson?.examples[0]?.code) {
       setEditorCode(lesson.examples[0].code);
       setResult(null);
+      setStdin('');
     }
     if (lesson?.exercise?.starterCode) {
       setExerciseCode(lesson.exercise.starterCode);
@@ -83,18 +95,17 @@ export const LessonPage: React.FC = () => {
         <p className="text-slate-500 text-sm">
           {t('សូមត្រួតពិនិត្យតំណភ្ជាប់ ឬត្រឡប់ទៅកាន់ទំព័រកម្មវិធីសិក្សា។', 'Please check the URL or return to the curriculum.')}
         </p>
-        <Link
-          to="/curriculum"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 text-white font-semibold text-xs"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t('ត្រឡប់ទៅកម្មវិធីសិក្សា', 'Back to Curriculum')}</span>
+        <Link to="/curriculum">
+          <Button variant="primary" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+            {t('ត្រឡប់ទៅកម្មវិធីសិក្សា', 'Back to Curriculum')}
+          </Button>
         </Link>
       </div>
     );
   }
 
   const { prevLesson, nextLesson } = getAdjacentLessons(lesson.slug);
+  const currentModule = CURRICULUM_MODULES.find((m) => m.slug === lesson.moduleSlug);
   const completed = isLessonCompleted(lesson.id);
   const bookmarked = isBookmarked(lesson.slug);
 
@@ -145,340 +156,448 @@ export const LessonPage: React.FC = () => {
     }
   };
 
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-      {/* Top Navigation & Breadcrumbs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <Link
-          to="/curriculum"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>{t('ត្រឡប់ទៅកម្មវិធីសិក្សា', 'Curriculum Overview')}</span>
-        </Link>
+    <div className="flex min-h-[calc(100vh-4rem)]">
+      {/* Collapsible Curriculum Sidebar */}
+      <CurriculumSidebar
+        isOpenMobile={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+        isCollapsedDesktop={sidebarCollapsed}
+        onToggleDesktop={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
 
-        {/* Quick action buttons */}
-        <div className="flex items-center gap-2">
-          {/* Bookmark Button */}
-          <button
-            onClick={() => toggleBookmark(lesson.slug)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
-              bookmarked
-                ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800 text-amber-600 dark:text-amber-400'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-            }`}
-            title={t('កត់ចំណាំមេរៀននេះ', 'Bookmark this lesson')}
-          >
-            <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-current text-amber-500' : ''}`} />
-            <span>{bookmarked ? t('បានកត់ចំណាំ', 'Bookmarked') : t('កត់ចំណាំ', 'Bookmark')}</span>
-          </button>
-
-          {/* Mark Complete Button */}
-          <button
-            onClick={() => markLessonComplete(lesson.id, !completed)}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-              completed
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-            }`}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{completed ? t('បានរៀនចប់ ✓', 'Completed ✓') : t('កត់សម្គាល់ថាចប់', 'Mark Complete')}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Lesson Header Title */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300">
-            {lesson.difficulty}
-          </span>
-          <span className="text-xs text-slate-500 flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            {lesson.estimatedMinutes} {t('នាទី', 'mins')}
-          </span>
-          {lesson.w3schoolsUrl && (
-            <a
-              href={lesson.w3schoolsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 hover:underline ml-2"
+      {/* Main Lesson Content Viewport */}
+      <div className="flex-1 min-w-0 px-4 sm:px-6 lg:px-10 py-6 sm:py-8 max-w-5xl mx-auto space-y-10">
+        {/* Sticky Mobile/Top Action Bar */}
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-200/90 dark:border-slate-800/90 text-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Mobile Sidebar Toggle Button */}
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shrink-0"
+              title={t('បើកមាតិកាមេរៀន', 'Open Curriculum Tree')}
             >
-              <span>W3Schools Reference</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
-        </div>
+              <ListTree className="w-4 h-4 text-rose-500" />
+              <span className="font-semibold">{t('មាតិកា', 'Outline')}</span>
+            </button>
 
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white leading-tight">
-          {title}
-        </h1>
-      </div>
-
-      {/* Objectives Box */}
-      <div className="p-5 rounded-2xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/60 space-y-3">
-        <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-          {t('គោលបំណងនៃមេរៀន (Lesson Objectives)', 'Lesson Objectives')}
-        </h3>
-        <ul className="space-y-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-          {objectives.map((obj, i) => (
-            <li key={i} className="flex items-start gap-2">
-              <span className="text-rose-500 font-bold">•</span>
-              <span>{obj}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Lesson Content Body (Original Khmer Explanations) */}
-      <div className="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 space-y-4 text-sm sm:text-base leading-relaxed">
-        <div className="whitespace-pre-wrap font-sans">
-          {content}
-        </div>
-      </div>
-
-      {/* Syntax Box if available */}
-      {lesson.syntax && (
-        <div className="space-y-2">
-          <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-            <Code2 className="w-4 h-4 text-rose-500" />
-            {t('ទម្រង់វេយ្យាករណ៍ (Syntax)', 'Java Syntax')}
-          </h3>
-          <pre className="p-4 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs sm:text-sm overflow-x-auto border border-slate-800">
-            <code>{lesson.syntax}</code>
-          </pre>
-        </div>
-      )}
-
-      {/* Code Example & Interactive Editor */}
-      {lesson.examples.length > 0 && (
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-rose-600" />
-              <span>{lesson.examples[0].title}</span>
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              {t(lesson.examples[0].explanationKm, lesson.examples[0].explanationEn)}
-            </p>
-          </div>
-
-          {/* Interactive Java Sandbox */}
-          <div className="space-y-4">
-            <JavaEditor
-              initialCode={lesson.examples[0].code}
-              value={editorCode}
-              onChange={setEditorCode}
-              onRun={handleRunExample}
-              isRunning={isRunning}
-              height="380px"
-            />
-
-            <OutputPanel
-              result={result}
-              isRunning={isRunning}
-              stdin={stdin}
-              onStdinChange={setStdin}
-              onClear={() => setResult(null)}
-            />
-          </div>
-
-          {/* Line by line explanation */}
-          {lesson.examples[0].lineByLineExplanation && (
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-              <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                {t('ការពន្យល់កូដមួយជួរៗ (Line-by-Line Breakdown)', 'Line-by-Line Code Breakdown')}
-              </h4>
-              <div className="space-y-2.5">
-                {lesson.examples[0].lineByLineExplanation.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs sm:text-sm flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4"
-                  >
-                    <code className="font-mono font-bold text-rose-600 dark:text-rose-400 shrink-0">
-                      {item.line}
-                    </code>
-                    <span className="text-slate-600 dark:text-slate-300">
-                      {t(item.explanationKm, item.explanationEn)}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            {/* Breadcrumb Path */}
+            <div className="hidden sm:flex items-center gap-1.5 text-slate-500 dark:text-slate-400 truncate">
+              <Link to="/curriculum" className="hover:text-rose-600 transition-colors">
+                {t('កម្មវិធីសិក្សា', 'Curriculum')}
+              </Link>
+              <span>/</span>
+              {currentModule && (
+                <span className="truncate max-w-[140px] font-medium text-slate-700 dark:text-slate-300">
+                  {t(currentModule.titleKm, currentModule.titleEn)}
+                </span>
+              )}
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Common Mistakes Section */}
-      {lesson.commonMistakes.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
-            <AlertTriangle className="w-5 h-5" />
-            <h3 className="font-bold text-slate-900 dark:text-white text-base">
-              {t('កំហុសដែលឧស្សាហ៍ជួបប្រទះ (Common Mistakes & Pitfalls)', 'Common Mistakes to Avoid')}
-            </h3>
           </div>
 
-          <div className="space-y-4">
-            {lesson.commonMistakes.map((mistake, idx) => (
-              <div
-                key={idx}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3"
-              >
-                <h4 className="font-bold text-slate-900 dark:text-white text-sm">
-                  {idx + 1}. {t(mistake.titleKm, mistake.titleEn)}
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
-                  {/* Bad code */}
-                  <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-800/40 text-rose-300 space-y-1">
-                    <div className="text-[11px] font-sans font-bold text-rose-400">❌ {t('កូដខុស (Incorrect)', 'Incorrect Code')}</div>
-                    <pre className="whitespace-pre-wrap">{mistake.badCode}</pre>
-                  </div>
-
-                  {/* Good code */}
-                  <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-800/40 text-emerald-300 space-y-1">
-                    <div className="text-[11px] font-sans font-bold text-emerald-400">✓ {t('កូដត្រូវ (Correct)', 'Correct Code')}</div>
-                    <pre className="whitespace-pre-wrap">{mistake.goodCode}</pre>
-                  </div>
-                </div>
-
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {t(mistake.explanationKm, mistake.explanationEn)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Interactive Exercise */}
-      {lesson.exercise && (
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-                <Code2 className="w-5 h-5 text-rose-500" />
-                <span>{t(lesson.exercise.titleKm, lesson.exercise.titleEn)}</span>
-              </h3>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 font-semibold">
-                {t('លំហាត់អនុវត្ត', 'Practice Exercise')}
+          {/* Bookmark & Completion Action Buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant={bookmarked ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => toggleBookmark(lesson.slug)}
+              leftIcon={<Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-current' : ''}`} />}
+            >
+              <span className="hidden sm:inline">
+                {bookmarked ? t('បានកត់ចំណាំ', 'Bookmarked') : t('កត់ចំណាំ', 'Bookmark')}
               </span>
-            </div>
+            </Button>
 
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              {t(lesson.exercise.descriptionKm, lesson.exercise.descriptionEn)}
-            </p>
+            <Button
+              variant={completed ? 'success' : 'outline'}
+              size="sm"
+              onClick={() => markLessonComplete(lesson.id, !completed)}
+              leftIcon={<CheckCircle2 className="w-4 h-4" />}
+            >
+              {completed ? t('បានរៀនចប់ ✓', 'Completed ✓') : t('កត់សម្គាល់ថាចប់', 'Mark Complete')}
+            </Button>
+          </div>
+        </div>
 
-            {/* Exercise Editor */}
-            <JavaEditor
-              initialCode={lesson.exercise.starterCode}
-              value={exerciseCode}
-              onChange={setExerciseCode}
-              onRun={handleRunExercise}
-              isRunning={isExerciseRunning}
-              height="300px"
-            />
+        {/* Lesson Title Header */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="brand" size="sm">
+              {lesson.difficulty === 'beginner'
+                ? t('កម្រិតដំបូង', 'Beginner')
+                : lesson.difficulty === 'intermediate'
+                ? t('កម្រិតមធ្យម', 'Intermediate')
+                : t('កម្រិតខ្ពស់', 'Advanced')}
+            </Badge>
 
-            <OutputPanel
-              result={exerciseResult}
-              isRunning={isExerciseRunning}
-              stdin=""
-              onStdinChange={() => {}}
-              onClear={() => setExerciseResult(null)}
-            />
+            <Badge variant="neutral" size="sm">
+              <Clock className="w-3 h-3 text-slate-400 mr-1" />
+              {lesson.estimatedMinutes} {t('នាទី', 'mins')}
+            </Badge>
 
-            {/* Hints & Solution buttons */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-              <button
-                onClick={() => setShowExerciseHints(!showExerciseHints)}
-                className="inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline"
+            {lesson.w3schoolsUrl && (
+              <a
+                href={lesson.w3schoolsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 hover:underline font-semibold ml-1"
               >
-                <Lightbulb className="w-4 h-4" />
-                <span>{showExerciseHints ? t('លាក់ការណែនាំ', 'Hide hints') : t('មើលការណែនាំជំនួយ (Hints)', 'Show hints')}</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  if (!showExerciseSolution) {
-                    setExerciseCode(lesson.exercise!.solutionCode);
-                    setShowExerciseSolution(true);
-                  } else {
-                    setExerciseCode(lesson.exercise!.starterCode);
-                    setShowExerciseSolution(false);
-                  }
-                }}
-                className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline font-medium"
-              >
-                {showExerciseSolution ? t('ត្រឡប់ទៅកូដដើម', 'Reset to Starter Code') : t('បង្ហាញចម្លើយគំរូ', 'Show Solution')}
-              </button>
-            </div>
-
-            {showExerciseHints && (
-              <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-xs text-amber-900 dark:text-amber-200 space-y-1">
-                {(language === 'km' ? lesson.exercise.hintsKm : lesson.exercise.hintsEn).map((h, i) => (
-                  <div key={i}>💡 {h}</div>
-                ))}
-              </div>
+                <span>W3Schools Reference</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
             )}
           </div>
-        </div>
-      )}
 
-      {/* Quizzes Component */}
-      {lesson.quizzes.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-500" />
-            <span>{t('តេស្តសមត្ថភាពចុងមេរៀន (Lesson Quiz)', 'Lesson Skill Quiz')}</span>
-          </h3>
-          <QuizComponent
-            lessonId={lesson.id}
-            questions={lesson.quizzes}
-            onFinish={() => markLessonComplete(lesson.id, true)}
-          />
-        </div>
-      )}
+          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white leading-tight">
+            {title}
+          </h1>
 
-      {/* Bottom Navigation: Previous / Next Lesson */}
-      <div className="pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-        {prevLesson ? (
+          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
+            {t(lesson.summaryKm, lesson.summaryEn)}
+          </p>
+        </div>
+
+        {/* Quick Table of Contents Pills for easy jumping */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+          <span className="text-slate-400 font-semibold mr-1">{t('រំលងទៅ:', 'Jump to:')}</span>
           <button
-            onClick={() => navigate(`/curriculum/${prevLesson.slug}`)}
-            className="w-full sm:w-auto inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs border border-slate-200 dark:border-slate-800 shadow-sm transition-colors text-left"
+            onClick={() => scrollToSection('sec-objectives')}
+            className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
           >
-            <ArrowLeft className="w-4 h-4 shrink-0" />
-            <div>
-              <div className="text-[10px] text-slate-400 uppercase">{t('មេរៀនមុន', 'Previous')}</div>
-              <div className="font-bold truncate max-w-[200px]">{t(prevLesson.titleKm, prevLesson.titleEn)}</div>
-            </div>
+            🎯 {t('គោលបំណង', 'Objectives')}
           </button>
-        ) : (
-          <div></div>
+          <button
+            onClick={() => scrollToSection('sec-theory')}
+            className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
+          >
+            📖 {t('ទ្រឹស្តី', 'Theory')}
+          </button>
+          {lesson.examples.length > 0 && (
+            <button
+              onClick={() => scrollToSection('sec-editor')}
+              className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
+            >
+              💻 {t('ឧទាហរណ៍កូដ', 'Code Example')}
+            </button>
+          )}
+          {lesson.commonMistakes.length > 0 && (
+            <button
+              onClick={() => scrollToSection('sec-mistakes')}
+              className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
+            >
+              ⚠️ {t('កំហុសទូទៅ', 'Mistakes')}
+            </button>
+          )}
+          {lesson.exercise && (
+            <button
+              onClick={() => scrollToSection('sec-exercise')}
+              className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
+            >
+              ✍️ {t('លំហាត់', 'Exercise')}
+            </button>
+          )}
+          {lesson.quizzes.length > 0 && (
+            <button
+              onClick={() => scrollToSection('sec-quiz')}
+              className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
+            >
+              🏆 {t('តេស្ត Quiz', 'Quiz')}
+            </button>
+          )}
+        </div>
+
+        {/* Section: Learning Objectives */}
+        <section id="sec-objectives">
+          <Card className="bg-rose-50/50 dark:bg-rose-950/20 border-rose-200/70 dark:border-rose-900/50">
+            <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 mb-3">
+              <Trophy className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+              <span>{t('គោលបំណងនៃមេរៀន (Lesson Objectives)', 'Lesson Objectives')}</span>
+            </h3>
+            <ul className="space-y-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+              {objectives.map((obj, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-2 shrink-0" />
+                  <span>{obj}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </section>
+
+        {/* Section: Lesson Theory & Explanation */}
+        <section id="sec-theory" className="space-y-4">
+          <div className="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed">
+            <div className="whitespace-pre-wrap font-sans">
+              {content}
+            </div>
+          </div>
+
+          {/* Syntax Code Block */}
+          {lesson.syntax && (
+            <div className="space-y-2 pt-2">
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider flex items-center gap-2">
+                <Code2 className="w-4 h-4 text-rose-500" />
+                <span>{t('ទម្រង់វេយ្យាករណ៍ (Syntax Structure)', 'Syntax Structure')}</span>
+              </h4>
+              <pre className="p-4 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs sm:text-sm overflow-x-auto border border-slate-800">
+                <code>{lesson.syntax}</code>
+              </pre>
+            </div>
+          )}
+        </section>
+
+        {/* Section: Live Code Example & Interactive Sandbox */}
+        {lesson.examples.length > 0 && (
+          <section id="sec-editor" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                <BookOpen className="w-4 h-4" />
+                <span>{t('ឧទាហរណ៍ជាក់ស្តែង', 'Interactive Code Example')}</span>
+              </div>
+              <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">
+                {lesson.examples[0].title}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                {t(lesson.examples[0].explanationKm, lesson.examples[0].explanationEn)}
+              </p>
+            </div>
+
+            {/* Java Code Editor & Output Panels */}
+            <div className="space-y-4">
+              <JavaEditor
+                initialCode={lesson.examples[0].code}
+                value={editorCode}
+                onChange={setEditorCode}
+                onRun={handleRunExample}
+                isRunning={isRunning}
+                height="380px"
+              />
+
+              <OutputPanel
+                result={result}
+                isRunning={isRunning}
+                stdin={stdin}
+                onStdinChange={setStdin}
+                onClear={() => setResult(null)}
+              />
+            </div>
+
+            {/* Line by line breakdown */}
+            {lesson.examples[0].lineByLineExplanation && (
+              <Card className="space-y-3">
+                <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                  {t('ការពន្យល់កូដមួយជួរៗ (Line-by-Line Breakdown)', 'Line-by-Line Breakdown')}
+                </h4>
+                <div className="space-y-2">
+                  {lesson.examples[0].lineByLineExplanation.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs sm:text-sm flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4"
+                    >
+                      <code className="font-mono font-bold text-rose-600 dark:text-rose-400 shrink-0">
+                        {item.line}
+                      </code>
+                      <span className="text-slate-600 dark:text-slate-300">
+                        {t(item.explanationKm, item.explanationEn)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </section>
         )}
 
-        {nextLesson ? (
-          <button
-            onClick={() => navigate(`/curriculum/${nextLesson.slug}`)}
-            className="w-full sm:w-auto inline-flex items-center justify-end gap-2 px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md transition-colors text-right"
-          >
-            <div>
-              <div className="text-[10px] text-rose-200 uppercase">{t('មេរៀនបន្ទាប់', 'Next Lesson')}</div>
-              <div className="font-bold truncate max-w-[200px]">{t(nextLesson.titleKm, nextLesson.titleEn)}</div>
+        {/* Section: Common Mistakes & Pitfalls */}
+        {lesson.commonMistakes.length > 0 && (
+          <section id="sec-mistakes" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                {t('កំហុសដែលឧស្សាហ៍ជួបប្រទះ (Common Mistakes & Pitfalls)', 'Common Mistakes & Pitfalls')}
+              </h3>
             </div>
-            <ArrowRight className="w-4 h-4 shrink-0" />
-          </button>
-        ) : (
-          <Link
-            to="/projects"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md transition-colors"
-          >
-            <span>{t('បន្តទៅកាន់គម្រោងអនុវត្ត', 'Proceed to Projects')}</span>
-            <Check className="w-4 h-4" />
-          </Link>
+
+            <div className="space-y-4">
+              {lesson.commonMistakes.map((mistake, idx) => (
+                <Card key={idx} className="space-y-3">
+                  <h4 className="font-bold text-slate-900 dark:text-white text-sm">
+                    {idx + 1}. {t(mistake.titleKm, mistake.titleEn)}
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+                    {/* Bad code */}
+                    <div className="p-3.5 rounded-xl bg-rose-950/20 border border-rose-800/40 text-rose-300 space-y-1">
+                      <div className="text-[11px] font-sans font-bold text-rose-400 flex items-center gap-1">
+                        <span>❌</span>
+                        <span>{t('កូដខុស (Incorrect)', 'Incorrect Code')}</span>
+                      </div>
+                      <pre className="whitespace-pre-wrap">{mistake.badCode}</pre>
+                    </div>
+
+                    {/* Good code */}
+                    <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-800/40 text-emerald-300 space-y-1">
+                      <div className="text-[11px] font-sans font-bold text-emerald-400 flex items-center gap-1">
+                        <span>✓</span>
+                        <span>{t('កូដត្រឹមត្រូវ (Correct)', 'Correct Code')}</span>
+                      </div>
+                      <pre className="whitespace-pre-wrap">{mistake.goodCode}</pre>
+                    </div>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {t(mistake.explanationKm, mistake.explanationEn)}
+                  </p>
+                </Card>
+              ))}
+            </div>
+          </section>
         )}
+
+        {/* Section: Practice Exercise */}
+        {lesson.exercise && (
+          <section id="sec-exercise" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+            <Card className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
+                  <Code2 className="w-5 h-5 text-rose-500" />
+                  <span>{t(lesson.exercise.titleKm, lesson.exercise.titleEn)}</span>
+                </h3>
+                <Badge variant="brand" size="sm">
+                  {t('លំហាត់អនុវត្ត', 'Practice Exercise')}
+                </Badge>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                {t(lesson.exercise.descriptionKm, lesson.exercise.descriptionEn)}
+              </p>
+
+              {/* Exercise Editor */}
+              <JavaEditor
+                initialCode={lesson.exercise.starterCode}
+                value={exerciseCode}
+                onChange={setExerciseCode}
+                onRun={handleRunExercise}
+                isRunning={isExerciseRunning}
+                height="300px"
+              />
+
+              <OutputPanel
+                result={exerciseResult}
+                isRunning={isExerciseRunning}
+                stdin=""
+                onStdinChange={() => {}}
+                onClear={() => setExerciseResult(null)}
+              />
+
+              {/* Hints & Solution buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <button
+                  onClick={() => setShowExerciseHints(!showExerciseHints)}
+                  className="inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline"
+                >
+                  <Lightbulb className="w-4 h-4" />
+                  <span>
+                    {showExerciseHints
+                      ? t('លាក់ការណែនាំ', 'Hide hints')
+                      : t('មើលការណែនាំជំនួយ (Hints)', 'Show hints')}
+                  </span>
+                </button>
+
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => {
+                    if (!showExerciseSolution) {
+                      setExerciseCode(lesson.exercise!.solutionCode);
+                      setShowExerciseSolution(true);
+                    } else {
+                      setExerciseCode(lesson.exercise!.starterCode);
+                      setShowExerciseSolution(false);
+                    }
+                  }}
+                >
+                  {showExerciseSolution ? t('ត្រឡប់ទៅកូដដើម', 'Reset to Starter Code') : t('បង្ហាញចម្លើយគំរូ', 'Show Solution')}
+                </Button>
+              </div>
+
+              {showExerciseHints && (
+                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-xs text-amber-900 dark:text-amber-200 space-y-1">
+                  {(language === 'km' ? lesson.exercise.hintsKm : lesson.exercise.hintsEn).map((h, i) => (
+                    <div key={i}>💡 {h}</div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </section>
+        )}
+
+        {/* Section: Lesson Skill Quiz */}
+        {lesson.quizzes.length > 0 && (
+          <section id="sec-quiz" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+            <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-500" />
+              <span>{t('តេស្តសមត្ថភាពចុងមេរៀន (Lesson Quiz)', 'Lesson Skill Quiz')}</span>
+            </h3>
+            <QuizComponent
+              lessonId={lesson.id}
+              questions={lesson.quizzes}
+              onFinish={() => markLessonComplete(lesson.id, true)}
+            />
+          </section>
+        )}
+
+        {/* Bottom Navigation: Previous / Next Lesson */}
+        <div className="pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          {prevLesson ? (
+            <button
+              onClick={() => navigate(`/curriculum/${prevLesson.slug}`)}
+              className="w-full sm:w-auto inline-flex items-center gap-3 p-3.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-sm transition-all text-left group"
+            >
+              <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 group-hover:text-rose-600 transition-transform shrink-0" />
+              <div>
+                <div className="text-[10px] text-slate-400 uppercase font-semibold">
+                  {t('មេរៀនមុន', 'Previous Lesson')}
+                </div>
+                <div className="font-bold text-xs sm:text-sm truncate max-w-[220px]">
+                  {t(prevLesson.titleKm, prevLesson.titleEn)}
+                </div>
+              </div>
+            </button>
+          ) : (
+            <div />
+          )}
+
+          {nextLesson ? (
+            <button
+              onClick={() => navigate(`/curriculum/${nextLesson.slug}`)}
+              className="w-full sm:w-auto inline-flex items-center justify-end gap-3 p-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition-all text-right group"
+            >
+              <div>
+                <div className="text-[10px] text-rose-200 uppercase font-semibold">
+                  {t('មេរៀនបន្ទាប់', 'Next Lesson')}
+                </div>
+                <div className="font-bold text-xs sm:text-sm truncate max-w-[220px]">
+                  {t(nextLesson.titleKm, nextLesson.titleEn)}
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 shrink-0 group-hover:translate-x-1 transition-transform" />
+            </button>
+          ) : (
+            <Link to="/projects">
+              <Button variant="success" rightIcon={<Check className="w-4 h-4" />}>
+                {t('បន្តទៅកាន់គម្រោងអនុវត្ត', 'Proceed to Guided Projects')}
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

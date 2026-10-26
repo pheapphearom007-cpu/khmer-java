@@ -5,6 +5,7 @@ import { executionService } from '../../services/executionService';
 import { ExecutionResult } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { Sparkles, Terminal } from 'lucide-react';
+import { Card } from '../common/Card';
 
 interface CodePlaygroundProps {
   initialCode?: string;
@@ -24,7 +25,7 @@ const TEMPLATES = [
 }`,
   },
   {
-    nameKm: 'គណនាលេខបូកដក (Math & Variables)',
+    nameKm: 'គណនាលេខ (Math & Variables)',
     nameEn: 'Variables & Math',
     code: `public class Main {
     public static void main(String[] args) {
@@ -114,6 +115,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
   const [stdin, setStdin] = useState(initialStdin);
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<ExecutionResult | null>(null);
+  const [activeTemplateIdx, setActiveTemplateIdx] = useState<number | null>(0);
 
   const handleRun = async (codeToRun: string) => {
     setIsRunning(true);
@@ -137,8 +139,9 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     }
   };
 
-  const loadTemplate = (tmpl: typeof TEMPLATES[0]) => {
+  const loadTemplate = (tmpl: typeof TEMPLATES[0], idx: number) => {
     setCode(tmpl.code);
+    setActiveTemplateIdx(idx);
     if (tmpl.stdin) {
       setStdin(tmpl.stdin);
     } else {
@@ -150,33 +153,37 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
   return (
     <div className="space-y-4">
       {/* Header and Template Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <Card className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Terminal className="w-5 h-5 text-rose-600 dark:text-rose-400" />
-          <h3 className="font-bold text-slate-900 dark:text-white text-base">
+          <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
             {title || t('Java Interactive Playground', 'Java Interactive Playground')}
           </h3>
         </div>
 
         {/* Template Quick Select */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-          <span className="text-xs text-slate-500 whitespace-nowrap flex items-center gap-1">
+          <span className="text-xs text-slate-500 whitespace-nowrap flex items-center gap-1 font-medium">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            {t('គំរួ:', 'Templates:')}
+            {t('គំរូ:', 'Templates:')}
           </span>
           <div className="flex gap-1.5">
             {TEMPLATES.map((tmpl, idx) => (
               <button
                 key={idx}
-                onClick={() => loadTemplate(tmpl)}
-                className="text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition-colors whitespace-nowrap"
+                onClick={() => loadTemplate(tmpl, idx)}
+                className={`text-xs px-2.5 py-1 rounded-xl transition-all whitespace-nowrap font-medium border ${
+                  activeTemplateIdx === idx
+                    ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border-transparent'
+                }`}
               >
                 {language === 'km' ? tmpl.nameKm : tmpl.nameEn}
               </button>
             ))}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Editor & Output Split Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -184,7 +191,10 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
           <JavaEditor
             initialCode={initialCode}
             value={code}
-            onChange={setCode}
+            onChange={(val) => {
+              setCode(val);
+              setActiveTemplateIdx(null);
+            }}
             onRun={handleRun}
             isRunning={isRunning}
             height={height}

@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { GuidedProject } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { GuidedProject, ProjectTestCase } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { useProgress } from '../../context/ProgressContext';
 import { JavaEditor } from '../editor/JavaEditor';
 import { OutputPanel } from '../editor/OutputPanel';
 import { executionService } from '../../services/executionService';
 import { ExecutionResult } from '../../types';
+import { Card } from '../common/Card';
+import { Badge } from '../common/Badge';
+import { Button } from '../common/Button';
 import {
   CheckCircle2,
+  XCircle,
   Clock,
   ExternalLink,
   Lightbulb,
@@ -30,7 +34,24 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [showSolution, setShowSolution] = useState(false);
   const [showHints, setShowHints] = useState(false);
-  const [checkedRequirements, setCheckedRequirements] = useState<Record<string, boolean>>({});
+
+  // Requirements persistence in localStorage
+  const REQS_STORAGE_KEY = `khmer_java_proj_${project.id}_reqs`;
+  const [checkedRequirements, setCheckedRequirements] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(REQS_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Track test results per test index
+  const [testResults, setTestResults] = useState<Record<number, { passed: boolean; message: string }>>({});
+
+  useEffect(() => {
+    localStorage.setItem(REQS_STORAGE_KEY, JSON.stringify(checkedRequirements));
+  }, [checkedRequirements, REQS_STORAGE_KEY]);
 
   const completed = isProjectCompleted(project.id);
   const title = language === 'km' ? project.titleKm : project.titleEn;
@@ -38,7 +59,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
   const objectives = language === 'km' ? project.objectivesKm : project.objectivesEn;
   const hints = language === 'km' ? project.hintsKm : project.hintsEn;
 
-  const handleRun = async (codeToRun: string, customStdin?: string) => {
+  const handleRun = async (codeToRun: string, customStdin?: string): Promise<ExecutionResult> => {
     setIsRunning(true);
     try {
       const res = await executionService.executeJava({
@@ -46,24 +67,41 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
         stdin: customStdin !== undefined ? customStdin : stdin,
       });
       setResult(res);
+      return res;
     } catch (err: any) {
-      setResult({
+      const errRes: ExecutionResult = {
         stdout: '',
         stderr: err?.message || 'Execution error',
         exitCode: 1,
         isError: true,
         provider: 'wandbox-openjdk',
         isRealExecution: false,
-      });
+      };
+      setResult(errRes);
+      return errRes;
     } finally {
       setIsRunning(false);
     }
   };
 
-  const runTestCase = (testStdin?: string) => {
-    const input = testStdin || '';
+  const runTestCase = async (testCase: ProjectTestCase, idx: number) => {
+    const input = testCase.stdin || '';
     setStdin(input);
-    handleRun(code, input);
+    const execRes = await handleRun(code, input);
+
+    const stdoutClean = execRes.stdout.toLowerCase();
+    const expectedClean = testCase.expectedOutputSubstring.toLowerCase();
+    const passed = stdoutClean.includes(expectedClean);
+
+    setTestResults((prev) => ({
+      ...prev,
+      [idx]: {
+        passed,
+        message: passed
+          ? t('ឆ្លងកាត់ជោគជ័យ! Output មានផ្ទុកលទ្ធផលរំពឹងទុក។', 'Test passed! Output contains expected result.')
+          : t(`មិនទាន់ឆ្លងកាត់ទេ: រំពឹងឃើញ "${testCase.expectedOutputSubstring}"`, `Failed: Expected output to contain "${testCase.expectedOutputSubstring}"`),
+      },
+    }));
   };
 
   const toggleReq = (reqId: string) => {
@@ -79,7 +117,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
 
   const handleLoadSolution = () => {
     if (!showSolution) {
-      if (window.confirm(t('តើអ្នកពិតជាចង់មើលដំណោះស្រាយគំរូមែនទេ? ព្យាយាមសរសេរដោយខ្លួនឯងមុនដើម្បីអភិវឌ្ឍជំនាញ!', 'Reveal reference solution? Try solving it independently first!'))) {
+      if (
+        window.confirm(
+          t(
+            'តើអ្នកពិតជាចង់មើលដំណោះស្រាយគំរូមែនទេ? ព្យាយាមសរសេរដោយខ្លួនឯងមុនដើម្បីអភិវឌ្ឍជំនាញ!',
+            'Reveal reference solution? Try solving it independently first!'
+          )
+        )
+      ) {
         setCode(project.solutionCode);
         setShowSolution(true);
       }
@@ -91,36 +136,35 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
 
   return (
     <div className="space-y-6">
-      {/* Project Banner */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+      {/* Project Banner Card */}
+      <Card className="p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+              <Badge variant="brand" size="xs">
                 {t('គម្រោងអនុវត្ត', 'Guided Project')}
-              </span>
-              <span className="flex items-center gap-1 text-xs text-slate-500">
-                <Clock className="w-3.5 h-3.5" />
+              </Badge>
+              <Badge variant="neutral" size="xs">
+                <Clock className="w-3 h-3 mr-1 text-slate-400" />
                 ~{project.estimatedHours} {t('ម៉ោង', 'hours')}
-              </span>
+              </Badge>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
               {title}
             </h1>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant={completed ? 'success' : 'outline'}
+              size="sm"
               onClick={handleToggleComplete}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                completed
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
-              }`}
+              leftIcon={<CheckCircle2 className="w-4 h-4" />}
             >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{completed ? t('គម្រោងបានបញ្ចប់!', 'Project Completed!') : t('កត់សម្គាល់ថាបានបញ្ចប់', 'Mark as Completed')}</span>
-            </button>
+              {completed
+                ? t('គម្រោងបានបញ្ចប់! ✓', 'Project Completed! ✓')
+                : t('កត់សម្គាល់ថាបានបញ្ចប់', 'Mark as Completed')}
+            </Button>
           </div>
         </div>
 
@@ -131,14 +175,16 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
         {/* W3Schools References */}
         {project.w3schoolsReferences.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-slate-500">{t('មេរៀនយោង W3Schools:', 'W3Schools References:')}</span>
+            <span className="text-slate-500 font-medium">
+              {t('មេរៀនយោង W3Schools:', 'W3Schools References:')}
+            </span>
             {project.w3schoolsReferences.map((ref, idx) => (
               <a
                 key={idx}
                 href={ref.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-rose-600 dark:text-rose-400 hover:underline"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-rose-600 dark:text-rose-400 hover:underline font-semibold"
               >
                 <span>{ref.title}</span>
                 <ExternalLink className="w-3 h-3" />
@@ -146,17 +192,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
             ))}
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Main Split: Requirements & Test cases / Editor & Output */}
+      {/* Main Split Layout: Left Requirements & Tests / Right IDE Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Requirements, Objectives & Hints */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Objectives */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-3 flex items-center gap-2">
+          {/* Learning Objectives */}
+          <Card className="p-5 space-y-3">
+            <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
               <Trophy className="w-4 h-4 text-amber-500" />
-              {t('គោលបំណងនៃការរៀនសូត្រ', 'Learning Objectives')}
+              <span>{t('គោលបំណងនៃការរៀនសូត្រ', 'Learning Objectives')}</span>
             </h3>
             <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
               {objectives.map((obj, i) => (
@@ -166,15 +212,20 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
 
-          {/* Requirements Checklist */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-            <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-3 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              {t('លក្ខខណ្ឌតម្រូវនៃគម្រោង (Checklist)', 'Project Requirements')}
-            </h3>
-            <div className="space-y-2.5">
+          {/* Requirements Checklist (Persisted in LocalStorage) */}
+          <Card className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <span>{t('លក្ខខណ្ឌតម្រូវនៃគម្រោង (Checklist)', 'Project Requirements')}</span>
+              </h3>
+              <Badge variant="neutral" size="xs">
+                {Object.values(checkedRequirements).filter(Boolean).length} / {project.requirements.length}
+              </Badge>
+            </div>
+            <div className="space-y-2">
               {project.requirements.map((req) => {
                 const isChecked = checkedRequirements[req.id];
                 const text = language === 'km' ? req.textKm : req.textEn;
@@ -182,10 +233,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
                   <label
                     key={req.id}
                     onClick={() => toggleReq(req.id)}
-                    className={`flex items-start gap-3 p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
+                    className={`flex items-start gap-3 p-2.5 rounded-xl border text-xs cursor-pointer transition-colors ${
                       isChecked
-                        ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 line-through'
-                        : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 line-through'
+                        : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
                     }`}
                   >
                     <input
@@ -194,51 +245,77 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
                       onChange={() => {}}
                       className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
                     />
-                    <span>{text}</span>
+                    <span className="leading-relaxed">{text}</span>
                   </label>
                 );
               })}
             </div>
-          </div>
+          </Card>
 
-          {/* Test Cases */}
+          {/* Test Cases Runner with Automated Diff/Verification */}
           {project.testCases.length > 0 && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-3 flex items-center gap-2">
+            <Card className="p-5 space-y-3">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
                 <Play className="w-4 h-4 text-rose-500" />
-                {t('ករណីតេស្តសាកល្បង (Test Cases)', 'Sample Test Cases')}
+                <span>{t('ករណីតេស្តស្វ័យប្រវត្ត (Automated Test Cases)', 'Automated Test Cases')}</span>
               </h3>
               <div className="space-y-3">
-                {project.testCases.map((tc, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">{tc.name}</span>
-                      <button
-                        onClick={() => runTestCase(tc.stdin)}
-                        className="px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold"
-                      >
-                        {t('រត់តេស្តនេះ', 'Run Test')}
-                      </button>
-                    </div>
-                    {tc.stdin && (
-                      <div className="font-mono text-[11px] text-slate-500">
-                        Input: <span className="text-amber-500">{tc.stdin.replace(/\n/g, ', ')}</span>
+                {project.testCases.map((tc, idx) => {
+                  const testStatus = testResults[idx];
+                  return (
+                    <div
+                      key={idx}
+                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 text-xs space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                          {tc.name}
+                        </span>
+                        <Button
+                          variant="primary"
+                          size="xs"
+                          onClick={() => runTestCase(tc, idx)}
+                          disabled={isRunning}
+                          leftIcon={<Play className="w-3 h-3" />}
+                        >
+                          {t('រត់តេស្តនេះ', 'Run Test')}
+                        </Button>
                       </div>
-                    )}
-                    <div className="text-slate-500 text-[11px]">
-                      Expected output contains:{' '}
-                      <span className="font-mono text-emerald-500">{tc.expectedOutputSubstring}</span>
+
+                      {tc.stdin && (
+                        <div className="font-mono text-[11px] text-slate-500">
+                          Input: <span className="text-amber-500">{tc.stdin.replace(/\n/g, ', ')}</span>
+                        </div>
+                      )}
+
+                      <div className="text-slate-500 text-[11px]">
+                        Expected substring: <span className="font-mono text-emerald-500">{tc.expectedOutputSubstring}</span>
+                      </div>
+
+                      {testStatus && (
+                        <div
+                          className={`p-2 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 ${
+                            testStatus.passed
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                              : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
+                          }`}
+                        >
+                          {testStatus.passed ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                          ) : (
+                            <XCircle className="w-3.5 h-3.5 shrink-0" />
+                          )}
+                          <span>{testStatus.message}</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            </div>
+            </Card>
           )}
 
-          {/* Hints & Solution Toggle */}
+          {/* Hints & Reference Solution Toggle */}
           <div className="space-y-3">
             <button
               onClick={() => setShowHints(!showHints)}
@@ -246,7 +323,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
             >
               <span className="flex items-center gap-2">
                 <Lightbulb className="w-4 h-4" />
-                {t('ការណែនាំជំនួយ (Hints)', 'Helpful Hints')}
+                <span>{t('ការណែនាំជំនួយ (Hints)', 'Helpful Hints')}</span>
               </span>
               <span>{showHints ? '▲' : '▼'}</span>
             </button>
@@ -262,17 +339,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
               </div>
             )}
 
-            <button
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
               onClick={handleLoadSolution}
-              className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors"
+              leftIcon={<KeyRound className="w-4 h-4" />}
             >
-              <KeyRound className="w-4 h-4" />
-              <span>
-                {showSolution
-                  ? t('ត្រឡប់ទៅកូដចាប់ផ្តើម (Starter Code)', 'Revert to Starter Code')
-                  : t('បង្ហាញដំណោះស្រាយគំរូ (Reference Solution)', 'Show Reference Solution')}
-              </span>
-            </button>
+              {showSolution
+                ? t('ត្រឡប់ទៅកូដចាប់ផ្តើម (Starter Code)', 'Revert to Starter Code')
+                : t('បង្ហាញដំណោះស្រាយគំរូ (Reference Solution)', 'Show Reference Solution')}
+            </Button>
           </div>
         </div>
 

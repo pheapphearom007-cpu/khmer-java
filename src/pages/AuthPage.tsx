@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { isSupabaseConfigured } from '../services/supabaseClient';
 import { Coffee, Lock, Mail, User, ArrowRight, Database, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Card } from '../components/common/Card';
+import { Button } from '../components/common/Button';
 
 export const AuthPage: React.FC = () => {
   const { t } = useLanguage();
@@ -32,14 +34,24 @@ export const AuthPage: React.FC = () => {
       } else if (mode === 'signup') {
         const { error } = await signUp(email, password, displayName);
         if (error) throw error;
-        setSuccessMsg(t('បង្កើតគណនីជោគជ័យ! សូមពិនិត្យមើលអ៊ីមែលរបស់អ្នកដើម្បីបញ្ជាក់ (ប្រសិនបើបានបើក Email Confirmation)។', 'Account created! Check your email to verify.'));
+        setSuccessMsg(
+          t(
+            'បង្កើតគណនីជោគជ័យ! សូមពិនិត្យមើលអ៊ីមែលរបស់អ្នកដើម្បីបញ្ជាក់ (ប្រសិនបើបានបើក Email Confirmation)។',
+            'Account created! Check your email to verify.'
+          )
+        );
         if (!isSupabaseConfigured) {
           navigate('/dashboard');
         }
       } else if (mode === 'reset') {
         const { error } = await resetPassword(email);
         if (error) throw error;
-        setSuccessMsg(t('តំណភ្ជាប់សម្រាប់កំណត់ពាក្យសម្ងាត់ឡើងវិញត្រូវបានផ្ញើទៅកាន់អ៊ីមែលរបស់អ្នករួចរាល់។', 'Password reset link sent to your email.'));
+        setSuccessMsg(
+          t(
+            'តំណភ្ជាប់សម្រាប់កំណត់ពាក្យសម្ងាត់ឡើងវិញត្រូវបានផ្ញើទៅកាន់អ៊ីមែលរបស់អ្នករួចរាល់។',
+            'Password reset link sent to your email.'
+          )
+        );
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'ប្រតិបត្តិការបរាជ័យ');
@@ -55,13 +67,13 @@ export const AuthPage: React.FC = () => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
-      <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl">
+      <Card className="max-w-md w-full p-6 sm:p-8 space-y-6 shadow-xl">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center mx-auto shadow-md shadow-rose-600/30">
+          <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center mx-auto shadow-sm">
             <Coffee className="w-6 h-6" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
             {mode === 'signin' && t('ចូលគណនី Khmer Java Academy', 'Sign In to Khmer Java Academy')}
             {mode === 'signup' && t('ចុះឈ្មោះគណនីថ្មី', 'Create Student Account')}
             {mode === 'reset' && t('កំណត់ពាក្យសម្ងាត់ឡើងវិញ', 'Reset Password')}
@@ -166,28 +178,26 @@ export const AuthPage: React.FC = () => {
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-2"
+            variant="primary"
+            size="md"
+            fullWidth
+            isLoading={loading}
+            rightIcon={<ArrowRight className="w-4 h-4" />}
           >
-            <span>
-              {loading
-                ? t('កំពុងដំណើរការ...', 'Processing...')
-                : mode === 'signin'
-                ? t('ចូលគណនី', 'Sign In')
-                : mode === 'signup'
-                ? t('ចុះឈ្មោះឥឡូវនេះ', 'Create Account')
-                : t('ផ្ញើតំណភ្ជាប់ Reset', 'Send Reset Link')}
-            </span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+            {mode === 'signin'
+              ? t('ចូលគណនី', 'Sign In')
+              : mode === 'signup'
+              ? t('ចុះឈ្មោះឥឡូវនេះ', 'Create Account')
+              : t('ផ្ញើតំណភ្ជាប់ Reset', 'Send Reset Link')}
+          </Button>
         </form>
 
-        {/* Fast Guest Mode Button */}
+        {/* Guest Mode Divider */}
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
+            <div className="w-full border-t border-slate-200 dark:border-slate-800" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-white dark:bg-slate-900 px-2 text-slate-400">
@@ -196,14 +206,15 @@ export const AuthPage: React.FC = () => {
           </div>
         </div>
 
-        <button
+        <Button
+          variant="secondary"
+          size="md"
+          fullWidth
           onClick={handleGuestLogin}
-          type="button"
-          className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors flex items-center justify-center gap-2"
+          leftIcon={<User className="w-4 h-4 text-slate-500" />}
         >
-          <User className="w-4 h-4 text-slate-500" />
-          <span>{t('ប្រើប្រាស់ជាភ្ញៀវភ្លាមៗ (Continue as Guest)', 'Continue as Guest (No Login)')}</span>
-        </button>
+          {t('ប្រើប្រាស់ជាភ្ញៀវភ្លាមៗ (Continue as Guest)', 'Continue as Guest (No Login)')}
+        </Button>
 
         {/* Toggle Mode */}
         <div className="text-center text-xs text-slate-500 pt-2">
@@ -229,7 +240,7 @@ export const AuthPage: React.FC = () => {
             </span>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

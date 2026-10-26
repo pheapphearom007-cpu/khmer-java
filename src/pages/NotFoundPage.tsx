@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { Home, ArrowLeft } from 'lucide-react';
+import { Button } from '../components/common/Button';
 
 export const NotFoundPage: React.FC = () => {
   const { t } = useLanguage();
@@ -24,19 +25,15 @@ export const NotFoundPage: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md transition-colors"
-        >
-          <Home className="w-4 h-4" />
-          <span>{t('ត្រឡប់ទៅទំព័រដើម', 'Go Home')}</span>
+        <Link to="/">
+          <Button variant="primary" size="md" leftIcon={<Home className="w-4 h-4" />}>
+            {t('ត្រឡប់ទៅទំព័រដើម', 'Go Home')}
+          </Button>
         </Link>
-        <Link
-          to="/curriculum"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t('កម្មវិធីសិក្សា', 'Curriculum')}</span>
+        <Link to="/curriculum">
+          <Button variant="outline" size="md" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+            {t('កម្មវិធីសិក្សា', 'Curriculum')}
+          </Button>
         </Link>
       </div>
     </div>
