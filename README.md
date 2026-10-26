@@ -125,9 +125,13 @@ npm run dev
 ```
 បើក Browser របស់អ្នកទៅកាន់ `http://localhost:5173`។
 
-### ៣. ដំណើរការ Test Suite ផ្ទៀងផ្ទាត់ប្រព័ន្ធ
+### ៣. ដំណើរការ Test Suites ផ្ទៀងផ្ទាត់ប្រព័ន្ធ
 ```bash
+# ១. ផ្ទៀងផ្ទាត់ប្រព័ន្ធមេរៀន ទាំង ៨ Modules, ២៧ មេរៀន, និង ៥ គម្រោង
 npx tsx test/verify_platform.ts
+
+# ២. ផ្ទៀងផ្ទាត់ Java Playground & Isolated Sandbox Execution (Valid code, Compile/Runtime Errors, Stdin, Timeouts, Limits)
+npx tsx test/verify_playground.ts
 ```
 
 ---
@@ -147,10 +151,27 @@ VITE_SUPABASE_ANON_KEY=your-actual-anon-key
 
 ---
 
-## ☕ ការកំណត់ Java Execution Service
+## ☕ ការកំណត់ Java Execution Service & Sandbox Architecture
 
-- **លំនាំដើម (Default):** កម្មវិធីដំណើរការកូដ Java ដោយស្វ័យប្រវត្តិតាមរយៈ **Wandbox OpenJDK 21 Sandbox API** ជាមួយការគាំទ្រ UTF-8 និង Stdin ដោយពុំចាំបាច់មាន API Key ឡើយ។
-- **Self-Hosted Runner (ជម្រើសបន្ថែម):** អ្នកអាចរៀបចំ Dockerized Judge0 ឬ Piston Runner ផ្ទាល់ខ្លួន ហើយបញ្ជាក់ URL តាមរយៈ Setting ឬ `localStorage.setItem('khmer_java_custom_runner_url', 'http://your-runner/api')`។
+ប្រព័ន្ធរត់កូដ Java របស់ Khmer Java Academy ត្រូវបានរចនាឡើងយ៉ាងម៉ឺងម៉ាត់ ដោយ**មិនដំណើរការ Untrusted Code លើ Main Web Server ឡើយ**៖
+
+1. **លំនាំដើម (Default Sandbox):**
+   - ដំណើរការកូដ Java លើ Cloud Sandbox ដាច់ដោយឡែក (OpenJDK 21 Wandbox Engine)។
+   - គាំទ្រ UTF-8 Console Encoding ពេញលេញ ធានាការបង្ហាញអក្សរខ្មែរ (`សួស្តីកម្ពុជា`) ត្រឹមត្រូវ គ្មានបញ្ហា `?` (Mojibake)។
+   - បំបែកច្បាស់លាស់រវាង Output (`stdout`), Compilation Error (`javac diagnostic`), Runtime Error (`stack trace`), និង Output Comparison (`Expected Output vs Actual Output`)។
+   - អនុវត្តកម្រិតការពារ៖ Execution Timeout (១៥ វិនាទី), Code Size Limit (អតិបរមា 50KB), និង Output Size Limit (អតិបរមា 100KB)។
+
+2. **Self-Hosted Docker Runner (ជម្រើសសម្រាប់ស្ថាប័ន / On-Premise):**
+   អ្នកអាចរៀបចំ Docker Runner ផ្ទាល់ខ្លួនបានយ៉ាងងាយស្រួល ឧទាហរណ៍តាមរយៈ Piston Engine៖
+   ```bash
+   # ទាញយក និងដំណើរការ Docker Container
+   docker run -d -p 2000:2000 --name java-runner ghcr.io/engineer-man/piston
+   ```
+   បន្ទាប់មកចូលទៅកាន់ផ្ទាំង **Settings (រូបកង់)** ក្នុង Code Playground រួចបញ្ចូល URL: `http://localhost:2000/api/v2/execute` ហើយចុចប៊ូតុង **"ធ្វើតេស្តការតភ្ជាប់ Runner"**។
+
+3. **ការបិទ / បើកដំណើរការ Runner (Execution Disabled Simulation):**
+   - អាចកំណត់ក្នុង `.env`: `VITE_DISABLE_SANDBOX_EXECUTION=true`
+   - ឬបិទក្នុងផ្ទាំង Settings ដោយផ្ទាល់។ នៅពេលបិទ ប៊ូតុង "Run" នឹងបង្ហាញស្ថានភាព Disabled ជាមួយការណែនាំ Setup Guide ច្បាស់លាស់ ដោយមិនធ្វើពុតជាដំណើរការកូដឡើយ។
 
 ---
 

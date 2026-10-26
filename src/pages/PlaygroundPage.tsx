@@ -1,12 +1,20 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CodePlayground } from '../components/editor/CodePlayground';
 import { useLanguage } from '../context/LanguageContext';
 import { Code2, ShieldCheck, Zap, Info } from 'lucide-react';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
+import { findLessonBySlug } from '../data/curriculum';
 
 export const PlaygroundPage: React.FC = () => {
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
+  const lessonSlug = searchParams.get('lesson');
+
+  const lesson = lessonSlug ? findLessonBySlug(lessonSlug) : null;
+  const initialCode = lesson?.examples[0]?.code;
+  const initialExpectedOutput = lesson?.examples[0]?.expectedOutput;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -17,6 +25,11 @@ export const PlaygroundPage: React.FC = () => {
             <Code2 className="w-3.5 h-3.5 mr-1" />
             <span>{t('កន្លែងរត់កូដឯករាជ្យ', 'Independent Code Sandbox')}</span>
           </Badge>
+          {lesson && (
+            <Badge variant="neutral" size="sm">
+              <span>{t('ឧទាហរណ៍ពី: ', 'Loaded from: ')}{t(lesson.titleKm, lesson.titleEn)}</span>
+            </Badge>
+          )}
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           {t('Java Code Playground', 'Java Code Playground')}
@@ -69,7 +82,11 @@ export const PlaygroundPage: React.FC = () => {
       </div>
 
       {/* Main Playground Surface */}
-      <CodePlayground height="500px" />
+      <CodePlayground
+        initialCode={initialCode}
+        initialExpectedOutput={initialExpectedOutput}
+        height="500px"
+      />
     </div>
   );
 };

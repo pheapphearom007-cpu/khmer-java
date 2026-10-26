@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
-import { Play, RotateCcw, Copy, Check, Loader2 } from 'lucide-react';
+import { Play, RotateCcw, Copy, Check, Loader2, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface JavaEditorProps {
@@ -11,6 +11,7 @@ interface JavaEditorProps {
   isRunning?: boolean;
   height?: string;
   readOnly?: boolean;
+  isExecutionDisabled?: boolean;
 }
 
 export const JavaEditor: React.FC<JavaEditorProps> = ({
@@ -21,11 +22,13 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
   isRunning = false,
   height = '420px',
   readOnly = false,
+  isExecutionDisabled = false,
 }) => {
   const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [editorValue, setEditorValue] = useState(value !== undefined ? value : initialCode);
   const [fontSize, setFontSize] = useState(14);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const editorRef = useRef<any>(null);
 
   useEffect(() => {
@@ -34,13 +37,17 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
     }
   }, [value]);
 
+  const isDirty = editorValue.trim() !== initialCode.trim();
+
   const handleEditorMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
 
     // Add Ctrl+Enter or Cmd+Enter keybinding to Run
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      const code = editor.getValue();
-      onRun(code);
+      if (!isExecutionDisabled && !isRunning) {
+        const code = editor.getValue();
+        onRun(code);
+      }
     });
   };
 
@@ -52,13 +59,22 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
     }
   };
 
-  const handleReset = () => {
+  const confirmReset = () => {
     setEditorValue(initialCode);
     if (onChange) {
       onChange(initialCode);
     }
     if (editorRef.current) {
       editorRef.current.setValue(initialCode);
+    }
+    setShowResetConfirm(false);
+  };
+
+  const handleResetClick = () => {
+    if (isDirty) {
+      setShowResetConfirm(true);
+    } else {
+      confirmReset();
     }
   };
 
@@ -86,6 +102,11 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
           <span className="text-[11px] px-2 py-0.5 rounded bg-slate-700/80 text-rose-300 font-mono">
             Java 21
           </span>
+          {isDirty && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-sans font-medium">
+              ● {t('បានកែប្រែ', 'Modified')}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
@@ -121,7 +142,7 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
           {/* Reset Button */}
           {!readOnly && (
             <button
-              onClick={handleReset}
+              onClick={handleResetClick}
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-200 transition-colors"
               title={t('កំណត់កូដឡើងវិញ', 'Reset code')}
             >
@@ -130,17 +151,30 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
             </button>
           )}
 
-          {/* Run Button */}
+          {/* Run Button with Unconfigured/Disabled handling */}
           <button
             onClick={() => onRun(editorValue)}
-            disabled={isRunning}
-            className="flex items-center gap-1.5 px-3.5 py-1 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:bg-rose-900/60 text-white font-semibold text-xs shadow-sm transition-all active:scale-95"
-            title="Ctrl+Enter / Cmd+Enter"
+            disabled={isRunning || isExecutionDisabled}
+            className={`flex items-center gap-1.5 px-3.5 py-1 rounded-xl text-white font-semibold text-xs shadow-sm transition-all active:scale-95 ${
+              isExecutionDisabled
+                ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                : 'bg-rose-600 hover:bg-rose-500 disabled:bg-rose-900/60'
+            }`}
+            title={
+              isExecutionDisabled
+                ? t('សេវាកម្មរត់កូដមិនទាន់កំណត់ (Execution unconfigured)', 'Execution service unconfigured')
+                : 'Ctrl+Enter / Cmd+Enter'
+            }
           >
             {isRunning ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 <span>{t('កំពុងរត់...', 'Running...')}</span>
+              </>
+            ) : isExecutionDisabled ? (
+              <>
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                <span>{t('មិនទាន់កំណត់', 'Unconfigured')}</span>
               </>
             ) : (
               <>
@@ -154,6 +188,35 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Confirmation warning before discarding unsaved changes */}
+      {showResetConfirm && (
+        <div className="px-4 py-2 bg-amber-950/80 border-b border-amber-800 text-amber-200 flex items-center justify-between gap-3 text-xs font-sans">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              {t(
+                'តើអ្នកពិតជាចង់កំណត់កូដឡើងវិញមែនទេ? កូដដែលអ្នកបានកែប្រែនឹងត្រូវបាត់បង់។',
+                'Discard unsaved changes? Your edits will be replaced with starter code.'
+              )}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={confirmReset}
+              className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-bold transition-colors"
+            >
+              {t('បោះបង់កូដចាស់', 'Discard')}
+            </button>
+            <button
+              onClick={() => setShowResetConfirm(false)}
+              className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
+            >
+              {t('រក្សាទុកដដែល', 'Cancel')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Editor Surface with Skeleton Loading fallback */}
       <div className="relative">

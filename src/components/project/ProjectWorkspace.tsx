@@ -74,6 +74,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
         stderr: err?.message || 'Execution error',
         exitCode: 1,
         isError: true,
+        status: 'service_unavailable',
         provider: 'wandbox-openjdk',
         isRealExecution: false,
       };

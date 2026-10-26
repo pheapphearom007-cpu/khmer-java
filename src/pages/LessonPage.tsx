@@ -148,6 +148,7 @@ export const LessonPage: React.FC = () => {
         stderr: err?.message || 'Execution error',
         exitCode: 1,
         isError: true,
+        status: 'service_unavailable',
         provider: 'wandbox-openjdk',
         isRealExecution: false,
       });
@@ -169,6 +170,7 @@ export const LessonPage: React.FC = () => {
         stderr: err?.message || 'Execution error',
         exitCode: 1,
         isError: true,
+        status: 'service_unavailable',
         provider: 'wandbox-openjdk',
         isRealExecution: false,
       });
@@ -426,17 +428,27 @@ export const LessonPage: React.FC = () => {
         {/* Section: Live Code Example & Interactive Sandbox */}
         {lesson.examples.length > 0 && (
           <section id="sec-editor" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                <BookOpen className="w-4 h-4" />
-                <span>{t('ឧទាហរណ៍ជាក់ស្តែង', 'Interactive Code Example')}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                  <BookOpen className="w-4 h-4" />
+                  <span>{t('ឧទាហរណ៍ជាក់ស្តែង', 'Interactive Code Example')}</span>
+                </div>
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">
+                  {lesson.examples[0].title}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  {t(lesson.examples[0].explanationKm, lesson.examples[0].explanationEn)}
+                </p>
               </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">
-                {lesson.examples[0].title}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                {t(lesson.examples[0].explanationKm, lesson.examples[0].explanationEn)}
-              </p>
+
+              <Link
+                to={`/playground?lesson=${lesson.slug}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition-colors shrink-0 self-start sm:self-center"
+              >
+                <span>{t('បើកក្នុង Playground', 'Open in Playground')}</span>
+                <ExternalLink className="w-3.5 h-3.5 text-rose-500" />
+              </Link>
             </div>
 
             {/* Java Code Editor & Output Panels */}
@@ -456,6 +468,7 @@ export const LessonPage: React.FC = () => {
                 stdin={stdin}
                 onStdinChange={setStdin}
                 onClear={() => setResult(null)}
+                expectedOutput={lesson.examples[0].expectedOutput}
               />
             </div>
 

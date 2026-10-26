@@ -161,11 +161,24 @@ export interface UserProgress {
   totalTimeSpentMinutes: number;
 }
 
+export type ExecutionStatus =
+  | 'idle'
+  | 'running'
+  | 'success'
+  | 'compilation_error'
+  | 'runtime_error'
+  | 'timeout'
+  | 'service_unavailable';
+
 export interface ExecutionResult {
   stdout: string;
   stderr: string;
+  compilationError?: string;
+  runtimeError?: string;
   exitCode: number;
   isError: boolean;
+  status: ExecutionStatus;
+  isTimeout?: boolean;
   executionTimeMs?: number;
   provider: 'wandbox-openjdk' | 'local' | 'mock-sandbox';
   isRealExecution: boolean;
