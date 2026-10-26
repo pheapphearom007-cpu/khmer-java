@@ -83,7 +83,17 @@ export const executionService = {
               code: rawCode,
             },
           ],
-          code: `public class prog {\n    public static void main(String[] args) {\n        try {\n            ${mainClass}.main(args);\n        } catch (Throwable t) {\n            t.printStackTrace();\n        }\n    }\n}`,
+          code: `public class prog {
+    public static void main(String[] args) {
+        try {
+            System.setOut(new java.io.PrintStream(new java.io.FileOutputStream(java.io.FileDescriptor.out), true, java.nio.charset.StandardCharsets.UTF_8));
+            System.setErr(new java.io.PrintStream(new java.io.FileOutputStream(java.io.FileDescriptor.err), true, java.nio.charset.StandardCharsets.UTF_8));
+            ${mainClass}.main(args);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+}`,
         };
       } else {
         payload = {

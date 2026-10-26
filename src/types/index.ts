@@ -50,6 +50,25 @@ export interface CommonMistake {
   explanationEn: string;
 }
 
+export interface LessonVocabulary {
+  term: string;
+  khmerTerm: string;
+  definitionKm: string;
+  definitionEn: string;
+}
+
+export interface PracticeQuestion {
+  id: string;
+  questionKm: string;
+  questionEn: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  hintsKm: string[];
+  hintsEn: string[];
+  starterCode?: string;
+  solutionCode?: string;
+  expectedOutput?: string;
+}
+
 export interface Lesson {
   id: string;
   slug: string;
@@ -66,9 +85,11 @@ export interface Lesson {
   contentKm: string; // Markdown or rich HTML-like formatted content
   contentEn: string;
   syntax?: string;
+  vocabulary: LessonVocabulary[];
   examples: CodeExample[];
   commonMistakes: CommonMistake[];
   exercise?: Exercise;
+  practiceQuestions: PracticeQuestion[];
   quizzes: QuizQuestion[];
   w3schoolsUrl: string;
 }

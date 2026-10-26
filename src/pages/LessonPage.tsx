@@ -30,6 +30,10 @@ import {
   Check,
   Trophy,
   ListTree,
+  BookMarked,
+  HelpCircle,
+  Play,
+  Sparkles,
 } from 'lucide-react';
 
 export const LessonPage: React.FC = () => {
@@ -70,6 +74,23 @@ export const LessonPage: React.FC = () => {
   const [isExerciseRunning, setIsExerciseRunning] = useState(false);
   const [showExerciseSolution, setShowExerciseSolution] = useState(false);
   const [showExerciseHints, setShowExerciseHints] = useState(false);
+
+  // Practice Questions state (hints and solution toggles)
+  const [revealedPracticeHints, setRevealedPracticeHints] = useState<Record<string, boolean>>({});
+  const [revealedPracticeSolutions, setRevealedPracticeSolutions] = useState<Record<string, boolean>>({});
+
+  const togglePracticeHint = (qId: string) => {
+    setRevealedPracticeHints((prev) => ({ ...prev, [qId]: !prev[qId] }));
+  };
+
+  const togglePracticeSolution = (qId: string) => {
+    setRevealedPracticeSolutions((prev) => ({ ...prev, [qId]: !prev[qId] }));
+  };
+
+  const handleLoadCodeToEditor = (code: string) => {
+    setEditorCode(code);
+    scrollToSection('sec-editor');
+  };
 
   // Reset editor states when lesson changes
   useEffect(() => {
@@ -279,6 +300,14 @@ export const LessonPage: React.FC = () => {
           >
             📖 {t('ទ្រឹស្តី', 'Theory')}
           </button>
+          {lesson.vocabulary && lesson.vocabulary.length > 0 && (
+            <button
+              onClick={() => scrollToSection('sec-vocab')}
+              className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
+            >
+              📚 {t('វាក្យសព្ទ', 'Vocabulary')}
+            </button>
+          )}
           {lesson.examples.length > 0 && (
             <button
               onClick={() => scrollToSection('sec-editor')}
@@ -301,6 +330,14 @@ export const LessonPage: React.FC = () => {
               className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
             >
               ✍️ {t('លំហាត់', 'Exercise')}
+            </button>
+          )}
+          {lesson.practiceQuestions && lesson.practiceQuestions.length > 0 && (
+            <button
+              onClick={() => scrollToSection('sec-practice')}
+              className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
+            >
+              💡 {t('សំណួរអនុវត្ត', 'Practice Questions')}
             </button>
           )}
           {lesson.quizzes.length > 0 && (
@@ -352,6 +389,39 @@ export const LessonPage: React.FC = () => {
             </div>
           )}
         </section>
+
+        {/* Section: English Technical Vocabulary with Khmer Definitions */}
+        {lesson.vocabulary && lesson.vocabulary.length > 0 && (
+          <section id="sec-vocab" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+              <BookMarked className="w-5 h-5 shrink-0" />
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                {t('វាក្យសព្ទបច្ចេកទេស និងនិយមន័យ (Technical Vocabulary)', 'Technical Vocabulary & Definitions')}
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {lesson.vocabulary.map((vocab, idx) => (
+                <div
+                  key={idx}
+                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800 space-y-1.5 transition-all hover:border-rose-300 dark:hover:border-rose-800"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold text-rose-600 dark:text-rose-400 text-xs sm:text-sm">
+                      {vocab.term}
+                    </span>
+                    <Badge variant="neutral" size="xs">
+                      {vocab.khmerTerm}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+                    {t(vocab.definitionKm, vocab.definitionEn)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Section: Live Code Example & Interactive Sandbox */}
         {lesson.examples.length > 0 && (
@@ -536,6 +606,130 @@ export const LessonPage: React.FC = () => {
                 </div>
               )}
             </Card>
+          </section>
+        )}
+
+        {/* Section: Practice Questions (At least three per lesson) */}
+        {lesson.practiceQuestions && lesson.practiceQuestions.length > 0 && (
+          <section id="sec-practice" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                <Sparkles className="w-5 h-5 shrink-0" />
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                  {t('សំណួរអនុវត្តពង្រឹងសមត្ថភាព (Practice Questions)', 'Hands-on Practice Questions')}
+                </h3>
+              </div>
+              <Badge variant="brand" size="xs">
+                {lesson.practiceQuestions.length} {t('សំណួរ', 'Questions')}
+              </Badge>
+            </div>
+
+            <div className="space-y-4">
+              {lesson.practiceQuestions.map((pq, idx) => {
+                const isHintOpen = revealedPracticeHints[pq.id];
+                const isSolutionOpen = revealedPracticeSolutions[pq.id];
+
+                return (
+                  <Card key={pq.id} className="space-y-3.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 font-bold text-xs flex items-center justify-center shrink-0">
+                          {idx + 1}
+                        </span>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm">
+                          {t(pq.questionKm, pq.questionEn)}
+                        </h4>
+                      </div>
+
+                      <Badge
+                        variant={pq.difficulty === 'easy' ? 'success' : pq.difficulty === 'medium' ? 'warning' : 'danger'}
+                        size="xs"
+                      >
+                        {pq.difficulty === 'easy'
+                          ? t('ងាយ', 'Easy')
+                          : pq.difficulty === 'medium'
+                          ? t('មធ្យម', 'Medium')
+                          : t('លំបាក', 'Hard')}
+                      </Badge>
+                    </div>
+
+                    {/* Hints & Solution Toggle Controls */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-3">
+                        {pq.hintsKm.length > 0 && (
+                          <button
+                            onClick={() => togglePracticeHint(pq.id)}
+                            className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline"
+                          >
+                            <HelpCircle className="w-3.5 h-3.5" />
+                            <span>
+                              {isHintOpen
+                                ? t('លាក់ការណែនាំ', 'Hide hint')
+                                : t('ការណែនាំ (Hint)', 'Show hint')}
+                            </span>
+                          </button>
+                        )}
+
+                        {pq.solutionCode && (
+                          <button
+                            onClick={() => togglePracticeSolution(pq.id)}
+                            className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 font-semibold hover:underline"
+                          >
+                            <Lightbulb className="w-3.5 h-3.5" />
+                            <span>
+                              {isSolutionOpen
+                                ? t('លាក់ចម្លើយគំរូ', 'Hide solution')
+                                : t('បង្ហាញចម្លើយគំរូ (Solution)', 'View solution')}
+                            </span>
+                          </button>
+                        )}
+                      </div>
+
+                      {pq.solutionCode && (
+                        <button
+                          onClick={() => handleLoadCodeToEditor(pq.solutionCode!)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                          title={t('ផ្ទុកកូដចូល Editor ខាងលើដើម្បីដំណើរការ', 'Load into editor to run')}
+                        >
+                          <Play className="w-3 h-3 fill-current" />
+                          <span>{t('ដំណើរការក្នុង Sandbox', 'Test in Sandbox')}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Hint Drawer */}
+                    {isHintOpen && (
+                      <div className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 text-xs text-amber-900 dark:text-amber-200 space-y-1">
+                        {(language === 'km' ? pq.hintsKm : pq.hintsEn).map((h, i) => (
+                          <div key={i} className="flex items-start gap-1.5">
+                            <span className="shrink-0">💡</span>
+                            <span>{h}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Solution Code Drawer */}
+                    {isSolutionOpen && pq.solutionCode && (
+                      <div className="space-y-2">
+                        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                          {t('កូដចម្លើយគំរូ (Reference Solution):', 'Reference Solution Code:')}
+                        </div>
+                        <pre className="p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-xs overflow-x-auto border border-slate-800">
+                          <code>{pq.solutionCode}</code>
+                        </pre>
+                        {pq.expectedOutput && (
+                          <div className="text-xs text-slate-500 font-mono bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">Expected Output: </span>
+                            <code>{pq.expectedOutput}</code>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
           </section>
         )}
 

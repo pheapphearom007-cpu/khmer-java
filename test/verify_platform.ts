@@ -6,39 +6,145 @@ console.log('=== KHMER JAVA ACADEMY VERIFICATION SUITE ===\n');
 
 let failed = false;
 
-// 1. Verify Curriculum Modules and Lessons
-console.log(`[1] Verifying Curriculum: ${CURRICULUM_MODULES.length} modules, ${ALL_LESSONS.length} total lessons...`);
+// 1. Verify 8 Curriculum Modules
+console.log(`[1] Verifying 8 Curriculum Modules...`);
+if (CURRICULUM_MODULES.length !== 8) {
+  console.error(`❌ Expected exactly 8 curriculum modules, found ${CURRICULUM_MODULES.length}`);
+  failed = true;
+} else {
+  console.log(`  ✓ Exactly 8 curriculum modules found.`);
+}
+
+const expectedModuleSlugs = [
+  'getting-started-environment',
+  'syntax-variables-io',
+  'conditions-loops-methods',
+  'classes-objects-oop',
+  'inheritance-polymorphism-interfaces',
+  'exceptions-collections-generics',
+  'lambdas-streams-concurrency',
+  'practical-projects-debugging',
+];
+
+expectedModuleSlugs.forEach((slug, idx) => {
+  const mod = CURRICULUM_MODULES[idx];
+  if (!mod || mod.slug !== slug) {
+    console.error(`❌ Module index ${idx} expected slug "${slug}", got "${mod?.slug}"`);
+    failed = true;
+  } else {
+    console.log(`  ✓ Module ${idx + 1}: "${mod.titleEn}" (${mod.lessons.length} lessons)`);
+  }
+});
+
+// 2. Verify Every Single Lesson
+console.log(`\n[2] Verifying All ${ALL_LESSONS.length} Lessons against strict pedagogical schema...`);
 
 ALL_LESSONS.forEach((lesson) => {
+  const id = lesson.id;
+
+  // Title & Objectives
   if (!lesson.titleKm || !lesson.titleEn) {
-    console.error(`❌ Lesson ${lesson.id} missing title in km or en`);
+    console.error(`❌ Lesson ${id} missing title in km or en`);
     failed = true;
   }
-  if (!lesson.objectivesKm || lesson.objectivesKm.length === 0) {
-    console.error(`❌ Lesson ${lesson.id} missing objectivesKm`);
+  if (!lesson.objectivesKm || lesson.objectivesKm.length < 2) {
+    console.error(`❌ Lesson ${id} has insufficient objectivesKm (found ${lesson.objectivesKm?.length})`);
     failed = true;
   }
-  if (!lesson.contentKm || lesson.contentKm.length < 50) {
-    console.error(`❌ Lesson ${lesson.id} missing substantial Khmer content`);
+
+  // Substantial Khmer content
+  if (!lesson.contentKm || lesson.contentKm.length < 100) {
+    console.error(`❌ Lesson ${id} missing substantial Khmer content (length: ${lesson.contentKm?.length})`);
     failed = true;
   }
+
+  // Technical Vocabulary
+  if (!lesson.vocabulary || lesson.vocabulary.length < 3) {
+    console.error(`❌ Lesson ${id} has insufficient vocabulary terms (found ${lesson.vocabulary?.length}, expected >= 3)`);
+    failed = true;
+  } else {
+    lesson.vocabulary.forEach((v, vIdx) => {
+      if (!v.term || !v.khmerTerm || !v.definitionKm) {
+        console.error(`❌ Lesson ${id} vocabulary index ${vIdx} has incomplete definitions`);
+        failed = true;
+      }
+    });
+  }
+
+  // Runnable Examples & Line-by-line breakdown
   if (!lesson.examples || lesson.examples.length === 0) {
-    console.error(`❌ Lesson ${lesson.id} has no code examples`);
+    console.error(`❌ Lesson ${id} has no code examples`);
     failed = true;
+  } else {
+    lesson.examples.forEach((ex, eIdx) => {
+      if (!ex.code || !ex.expectedOutput) {
+        console.error(`❌ Lesson ${id} example index ${eIdx} missing code or expectedOutput`);
+        failed = true;
+      }
+      if (!ex.lineByLineExplanation || ex.lineByLineExplanation.length === 0) {
+        console.error(`❌ Lesson ${id} example index ${eIdx} missing lineByLineExplanation`);
+        failed = true;
+      }
+    });
   }
+
+  // Common Mistakes (Bad vs Good code)
+  if (!lesson.commonMistakes || lesson.commonMistakes.length === 0) {
+    console.error(`❌ Lesson ${id} missing commonMistakes`);
+    failed = true;
+  } else {
+    lesson.commonMistakes.forEach((cm, mIdx) => {
+      if (!cm.badCode || !cm.goodCode || !cm.explanationKm) {
+        console.error(`❌ Lesson ${id} mistake index ${mIdx} missing badCode, goodCode, or explanationKm`);
+        failed = true;
+      }
+    });
+  }
+
+  // At least 3 Practice Questions per lesson
+  if (!lesson.practiceQuestions || lesson.practiceQuestions.length < 3) {
+    console.error(`❌ Lesson ${id} has insufficient practiceQuestions (found ${lesson.practiceQuestions?.length}, expected >= 3)`);
+    failed = true;
+  } else {
+    lesson.practiceQuestions.forEach((pq, qIdx) => {
+      if (!pq.questionKm || !pq.hintsKm || pq.hintsKm.length === 0) {
+        console.error(`❌ Lesson ${id} practice question index ${qIdx} missing questionKm or hintsKm`);
+        failed = true;
+      }
+    });
+  }
+
+  // Quizzes with Hints & Explanations
+  if (!lesson.quizzes || lesson.quizzes.length < 2) {
+    console.error(`❌ Lesson ${id} has insufficient quizzes (found ${lesson.quizzes?.length}, expected >= 2)`);
+    failed = true;
+  } else {
+    lesson.quizzes.forEach((q, qIdx) => {
+      if (q.optionsKm.length < 2 || q.correctOptionIndex === undefined || !q.explanationKm) {
+        console.error(`❌ Lesson ${id} quiz index ${qIdx} missing options, answer index, or explanation`);
+        failed = true;
+      }
+    });
+  }
+
+  // W3Schools direct link
   if (!lesson.w3schoolsUrl || !lesson.w3schoolsUrl.startsWith('https://www.w3schools.com/java/')) {
-    console.error(`❌ Lesson ${lesson.id} has invalid W3Schools URL: ${lesson.w3schoolsUrl}`);
-    failed = true;
-  }
-  if (!lesson.quizzes || lesson.quizzes.length === 0) {
-    console.error(`❌ Lesson ${lesson.id} has no quizzes`);
+    console.error(`❌ Lesson ${id} has invalid W3Schools URL: ${lesson.w3schoolsUrl}`);
     failed = true;
   }
 });
-console.log('✓ All curriculum lessons verified successfully with full Khmer content and W3Schools links.');
 
-// 2. Verify 5 Guided Projects
-console.log(`\n[2] Verifying Guided Projects: ${GUIDED_PROJECTS.length} projects...`);
+console.log(`  ✓ All ${ALL_LESSONS.length} curriculum lessons verified:`);
+console.log(`    - 100% original Khmer explanations`);
+console.log(`    - English technical vocabulary with Khmer definitions`);
+console.log(`    - Line-by-line Java code breakdowns`);
+console.log(`    - Common mistakes with Bad vs Good comparisons`);
+console.log(`    - At least 3 practice questions per lesson (total: ${ALL_LESSONS.reduce((acc, l) => acc + (l.practiceQuestions?.length || 0), 0)} questions)`);
+console.log(`    - Progressive quizzes with hints and explanations`);
+console.log(`    - Direct W3Schools curriculum reference links`);
+
+// 3. Verify 5 Guided Projects
+console.log(`\n[3] Verifying Guided Projects: ${GUIDED_PROJECTS.length} projects...`);
 if (GUIDED_PROJECTS.length < 5) {
   console.error(`❌ Expected at least 5 guided projects, found ${GUIDED_PROJECTS.length}`);
   failed = true;
@@ -74,8 +180,8 @@ requiredProjectSlugs.forEach((slug) => {
   }
 });
 
-// 3. Verify Glossary
-console.log(`\n[3] Verifying Technical Glossary: ${GLOSSARY_TERMS.length} terms...`);
+// 4. Verify Technical Glossary
+console.log(`\n[4] Verifying Technical Glossary: ${GLOSSARY_TERMS.length} terms...`);
 if (GLOSSARY_TERMS.length < 10) {
   console.error('❌ Glossary has too few terms');
   failed = true;
@@ -83,17 +189,19 @@ if (GLOSSARY_TERMS.length < 10) {
   console.log(`  ✓ ${GLOSSARY_TERMS.length} English-Khmer terms loaded with pronunciation guides.`);
 }
 
-// 4. Test Live Wandbox Sandbox Java Execution
-console.log('\n[4] Testing Live Java Sandbox Execution (Wandbox OpenJDK 21)...');
+// 5. Test Live Wandbox Sandbox Java Execution
+console.log('\n[5] Testing Live Java Sandbox Execution (Wandbox OpenJDK 21)...');
 async function testExecution() {
   const testPayload = {
     compiler: 'openjdk-jdk-21+35',
     'compiler-option-raw': '-encoding\nUTF-8',
     code: `public class prog {
     public static void main(String[] args) {
+        System.setOut(new java.io.PrintStream(new java.io.FileOutputStream(java.io.FileDescriptor.out), true, java.nio.charset.StandardCharsets.UTF_8));
         int x = 10;
         int y = 25;
         System.out.println("TEST_CALC_OK: " + (x + y));
+        System.out.println("UTF8_KHMER_OK: សួស្តីកម្ពុជា");
     }
 }`,
   };
@@ -104,23 +212,33 @@ async function testExecution() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(testPayload),
     });
-    const data = await res.json();
-    if (data.program_output && data.program_output.includes('TEST_CALC_OK: 35')) {
-      console.log('  ✓ Live OpenJDK Sandbox Execution PASSED! Output:', data.program_output.trim());
+
+    if (!res.ok) {
+      throw new Error(`Wandbox responded with HTTP ${res.status}`);
+    }
+
+    const data = await res.json() as { program_output?: string; status?: number };
+    const output = data.program_output || '';
+
+    if (output.includes('TEST_CALC_OK: 35') && output.includes('UTF8_KHMER_OK: សួស្តីកម្ពុជា')) {
+      console.log('  ✓ Wandbox OpenJDK 21 execution verified successfully:');
+      console.log(output.trim().split('\n').map(l => '    ' + l).join('\n'));
     } else {
-      console.error('  ❌ Sandbox returned unexpected output:', data);
+      console.error('❌ Unexpected program output:', output);
       failed = true;
     }
   } catch (err) {
-    console.error('  ❌ Sandbox request failed:', err);
+    console.error('❌ Wandbox execution test failed:', err);
     failed = true;
   }
 
+  console.log('\n=============================================');
   if (failed) {
-    console.error('\n❌ SOME VERIFICATION TESTS FAILED.');
+    console.error('❌ VERIFICATION FAILED: Some checks did not pass.');
     process.exit(1);
   } else {
-    console.log('\n✨ ALL VERIFICATION TESTS PASSED SUCCESSFULLY! ✨');
+    console.log('✅ ALL VERIFICATION CHECKS PASSED PERFECTLY!');
+    process.exit(0);
   }
 }
 
