@@ -10,18 +10,18 @@ services:
     runtime: node
     plan: free
     region: singapore # Nearest low-latency region for Cambodian learners
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --production=false && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
-      - key: NODE_ENV
-        value: production
+      - key: NODE_VERSION
+        value: 20.18.0
       - key: PORT
         value: 10000
       - key: AI_TUTOR_PROVIDER
         value: gemini
-      # The following sensitive variables are securely configured in your Render Dashboard:
+      # Configure in your Render Dashboard:
       - key: GEMINI_API_KEY
         sync: false
       - key: VITE_SUPABASE_URL
