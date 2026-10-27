@@ -1,31 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { GLOSSARY_TERMS } from '../data/glossary';
 import { useLanguage } from '../context/LanguageContext';
-import { BookA, Search, Volume2, Tag, Copy, Check, X } from 'lucide-react';
+import { BookA, Search, Volume2, Tag, Copy, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { EmptyState } from '../components/common/EmptyState';
+
+const ITEMS_PER_PAGE = 8;
 
 export const GlossaryPage: React.FC = () => {
   const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [copiedSnippetIndex, setCopiedSnippetIndex] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredTerms = GLOSSARY_TERMS.filter((term) => {
-    const q = searchQuery.toLowerCase().trim();
-    const matchesSearch =
-      !q ||
-      term.term.toLowerCase().includes(q) ||
-      term.khmerTranslation.toLowerCase().includes(q) ||
-      term.pronunciationKm.toLowerCase().includes(q) ||
-      term.definitionKm.toLowerCase().includes(q) ||
-      term.definitionEn.toLowerCase().includes(q);
+  const filteredTerms = useMemo(() => {
+    return GLOSSARY_TERMS.filter((term) => {
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        term.term.toLowerCase().includes(q) ||
+        term.khmerTranslation.toLowerCase().includes(q) ||
+        term.pronunciationKm.toLowerCase().includes(q) ||
+        term.definitionKm.toLowerCase().includes(q) ||
+        term.definitionEn.toLowerCase().includes(q);
 
-    const matchesCategory = selectedCategory === 'all' || term.category === selectedCategory;
+      const matchesCategory = selectedCategory === 'all' || term.category === selectedCategory;
 
-    return matchesSearch && matchesCategory;
-  });
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, selectedCategory]);
+
+  const totalPages = Math.ceil(filteredTerms.length / ITEMS_PER_PAGE) || 1;
+  const paginatedTerms = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredTerms.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredTerms, currentPage]);
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (cat: string) => {
+    setSelectedCategory(cat);
+    setCurrentPage(1);
+  };
 
   const categories = [
     { id: 'all', labelKm: 'ទាំងអស់', labelEn: 'All' },
@@ -44,10 +65,10 @@ export const GlossaryPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Header Banner */}
-      <div className="space-y-3 max-w-3xl">
+      <header className="space-y-3 max-w-3xl">
         <div className="flex items-center gap-2">
           <Badge variant="brand" size="sm">
-            <BookA className="w-3.5 h-3.5 mr-1" />
+            <BookA className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
             <span>{t('វចនានុក្រមបច្ចេកទេស', 'Technical Glossary')}</span>
           </Badge>
         </div>
@@ -60,37 +81,41 @@ export const GlossaryPage: React.FC = () => {
             'Master key Java terminology with Khmer pronunciation guides, precise definitions, and contextual code snippets.'
           )}
         </p>
-      </div>
+      </header>
 
       {/* Search and Category Filters */}
       <Card className="p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         {/* Search Input */}
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
           <input
-            type="text"
+            type="search"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            aria-label={t('ស្វែងរកពាក្យបច្ចេកទេស', 'Search technical terms')}
             placeholder={t('ស្វែងរកពាក្យ (ឧ. polymorphism, jvm, static)...', 'Search terms (e.g. polymorphism, jvm)...')}
-            className="w-full pl-10 pr-9 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-rose-500"
+            className="w-full pl-10 pr-9 py-2 min-h-[44px] bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-rose-500"
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              onClick={() => handleSearchChange('')}
+              aria-label={t('សម្អាតការស្វែងរក', 'Clear search query')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           )}
         </div>
 
         {/* Category Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0" role="tablist" aria-label={t('ប្រភេទពាក្យបច្ចេកទេស', 'Glossary categories')}>
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
+              role="tab"
+              aria-selected={selectedCategory === cat.id}
+              onClick={() => handleCategoryChange(cat.id)}
+              className={`px-3 py-2 min-h-[44px] rounded-xl text-xs font-semibold whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
                 selectedCategory === cat.id
                   ? 'bg-rose-600 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -101,6 +126,18 @@ export const GlossaryPage: React.FC = () => {
           ))}
         </div>
       </Card>
+
+      {/* Results Count Summary */}
+      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
+        <span>
+          {t(`បង្ហាញ ${paginatedTerms.length} ក្នុងចំណោម ${filteredTerms.length} ពាក្យ`, `Showing ${paginatedTerms.length} of ${filteredTerms.length} terms`)}
+        </span>
+        {totalPages > 1 && (
+          <span>
+            {t(`ទំព័រទី ${currentPage} នៃ ${totalPages}`, `Page ${currentPage} of ${totalPages}`)}
+          </span>
+        )}
+      </div>
 
       {/* Terms Grid */}
       {filteredTerms.length === 0 ? (
@@ -114,13 +151,14 @@ export const GlossaryPage: React.FC = () => {
           onAction={() => {
             setSearchQuery('');
             setSelectedCategory('all');
+            setCurrentPage(1);
           }}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredTerms.map((item, idx) => (
+        <section aria-label={t('បញ្ជីពាក្យបច្ចេកទេស', 'Glossary terms list')} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {paginatedTerms.map((item, idx) => (
             <Card
-              key={idx}
+              key={item.term}
               hover
               className="flex flex-col justify-between space-y-4"
             >
@@ -128,9 +166,9 @@ export const GlossaryPage: React.FC = () => {
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       {item.term}
-                    </h3>
+                    </h2>
                     <div className="text-rose-600 dark:text-rose-400 font-semibold text-xs sm:text-sm mt-0.5">
                       {item.khmerTranslation}
                     </div>
@@ -138,7 +176,7 @@ export const GlossaryPage: React.FC = () => {
 
                   {/* Pronunciation Badge */}
                   <Badge variant="neutral" size="sm">
-                    <Volume2 className="w-3 h-3 text-rose-500 mr-1" />
+                    <Volume2 className="w-3 h-3 text-rose-500 mr-1" aria-hidden="true" />
                     <span>{item.pronunciationKm}</span>
                   </Badge>
                 </div>
@@ -156,12 +194,13 @@ export const GlossaryPage: React.FC = () => {
                   <button
                     onClick={() => handleCopySnippet(item.exampleSnippet!, idx)}
                     title={t('ចម្លងកូដ', 'Copy code')}
-                    className="p-1 rounded text-slate-400 hover:text-white shrink-0"
+                    aria-label={t('ចម្លងកូដគំរូ', 'Copy code snippet')}
+                    className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded text-slate-400 hover:text-white shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                   >
                     {copiedSnippetIndex === idx ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <Check className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
                     ) : (
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                     )}
                   </button>
                 </div>
@@ -170,13 +209,55 @@ export const GlossaryPage: React.FC = () => {
               {/* Category pill */}
               <div className="pt-2 flex items-center justify-between text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
                 <span className="inline-flex items-center gap-1 uppercase tracking-wider text-[10px] font-bold text-slate-500">
-                  <Tag className="w-3 h-3" />
+                  <Tag className="w-3 h-3" aria-hidden="true" />
                   {item.category}
                 </span>
               </div>
             </Card>
           ))}
-        </div>
+        </section>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <nav
+          aria-label={t('ការផ្លាស់ប្តូរទំព័រ', 'Glossary pagination')}
+          className="flex items-center justify-center gap-2 pt-4"
+        >
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            aria-label={t('ទំព័រមុន', 'Previous page')}
+            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              aria-current={currentPage === page ? 'page' : undefined}
+              aria-label={t(`ទំព័រទី ${page}`, `Page ${page}`)}
+              className={`w-11 h-11 rounded-xl text-xs font-bold transition-all ${
+                currentPage === page
+                  ? 'bg-rose-600 text-white shadow-sm'
+                  : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            aria-label={t('ទំព័របន្ទាប់', 'Next page')}
+            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </nav>
       )}
     </div>
   );

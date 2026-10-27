@@ -198,6 +198,8 @@ public class Main {
         System.out.println("ផលគុណ (Lambda): " + product);
     }
 }`,
+        expectedOutput: `ផលបូក (Lambda): 40
+ផលគុណ (Lambda): 42`,
         hintsKm: [
           'ប្រើ `@FunctionalInterface` ពីលើ Interface',
           'Lambda សរសេរជា `(a, b) -> a + b;`',
@@ -495,6 +497,7 @@ public class Main {
         System.out.println("ផលបូកទំនិញតម្លៃចាប់ពី $50 ឡើង: $" + sumOver50);
     }
 }`,
+        expectedOutput: 'ផលបូកទំនិញតម្លៃចាប់ពី $50 ឡើង: $200.0',
         hintsKm: [
           'ប្រើ `filter(p -> p >= 50.0)`',
           'ប្រើ `mapToDouble(Double::doubleValue)` រួចហៅ `sum()`',
@@ -791,6 +794,10 @@ t.start(); // ត្រឹមត្រូវ: បង្កើត Thread ថ្�
         countdown.join();
     }
 }`,
+        expectedOutput: `⏱️ រាប់ថយក្រោយ: 3
+⏱️ រាប់ថយក្រោយ: 2
+⏱️ រាប់ថយក្រោយ: 1
+🚀 បាញ់បង្ហោះរ៉ុក្កែតជោគជ័យ!`,
         hintsKm: [
           'ប្រើ `Thread.sleep(1000)` ក្នុងប្លុក try-catch',
           'ហៅ `countdown.start()` និង `countdown.join()` ក្នុង main',

@@ -18,6 +18,7 @@ import {
   Play,
   KeyRound,
   Trophy,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface ProjectWorkspaceProps {
@@ -26,7 +27,13 @@ interface ProjectWorkspaceProps {
 
 export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) => {
   const { language, t } = useLanguage();
-  const { isProjectCompleted, markProjectComplete } = useProgress();
+  const {
+    isProjectCompleted,
+    markProjectComplete,
+    awardXp,
+    logLearningActivity,
+    triggerCelebration,
+  } = useProgress();
 
   const [code, setCode] = useState(project.starterCode);
   const [stdin, setStdin] = useState('');
@@ -34,6 +41,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [showSolution, setShowSolution] = useState(false);
   const [showHints, setShowHints] = useState(false);
+  const [showConfirmSolutionModal, setShowConfirmSolutionModal] = useState(false);
 
   // Requirements persistence in localStorage
   const REQS_STORAGE_KEY = `khmer_java_proj_${project.id}_reqs`;
@@ -53,6 +61,18 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
     localStorage.setItem(REQS_STORAGE_KEY, JSON.stringify(checkedRequirements));
   }, [checkedRequirements, REQS_STORAGE_KEY]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showConfirmSolutionModal) {
+        setShowConfirmSolutionModal(false);
+      }
+    };
+    if (showConfirmSolutionModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showConfirmSolutionModal]);
+
   const completed = isProjectCompleted(project.id);
   const title = language === 'km' ? project.titleKm : project.titleEn;
   const description = language === 'km' ? project.descriptionKm : project.descriptionEn;
@@ -62,6 +82,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
   const handleRun = async (codeToRun: string, customStdin?: string): Promise<ExecutionResult> => {
     setIsRunning(true);
     try {
+      logLearningActivity('project_run');
       const res = await executionService.executeJava({
         code: codeToRun,
         stdin: customStdin !== undefined ? customStdin : stdin,
@@ -94,15 +115,30 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
     const expectedClean = testCase.expectedOutputSubstring.toLowerCase();
     const passed = stdoutClean.includes(expectedClean);
 
-    setTestResults((prev) => ({
-      ...prev,
-      [idx]: {
-        passed,
-        message: passed
-          ? t('ឆ្លងកាត់ជោគជ័យ! Output មានផ្ទុកលទ្ធផលរំពឹងទុក។', 'Test passed! Output contains expected result.')
-          : t(`មិនទាន់ឆ្លងកាត់ទេ: រំពឹងឃើញ "${testCase.expectedOutputSubstring}"`, `Failed: Expected output to contain "${testCase.expectedOutputSubstring}"`),
-      },
-    }));
+    setTestResults((prev) => {
+      const nextResults = {
+        ...prev,
+        [idx]: {
+          passed,
+          message: passed
+            ? t('ឆ្លងកាត់ជោគជ័យ! Output មានផ្ទុកលទ្ធផលរំពឹងទុក។', 'Test passed! Output contains expected result.')
+            : t(`មិនទាន់ឆ្លងកាត់ទេ: រំពឹងឃើញ "${testCase.expectedOutputSubstring}"`, `Failed: Expected output to contain "${testCase.expectedOutputSubstring}"`),
+        },
+      };
+
+      // Check if all test cases passed
+      const allPassed = project.testCases.every((_, i) =>
+        i === idx ? passed : Boolean(nextResults[i]?.passed)
+      );
+
+      if (allPassed && !completed) {
+        triggerCelebration();
+        awardXp(150, `project_${project.id}`, 'All Project Tests Passed');
+        markProjectComplete(project.id, true);
+      }
+
+      return nextResults;
+    });
   };
 
   const toggleReq = (reqId: string) => {
@@ -118,21 +154,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
 
   const handleLoadSolution = () => {
     if (!showSolution) {
-      if (
-        window.confirm(
-          t(
-            'តើអ្នកពិតជាចង់មើលដំណោះស្រាយគំរូមែនទេ? ព្យាយាមសរសេរដោយខ្លួនឯងមុនដើម្បីអភិវឌ្ឍជំនាញ!',
-            'Reveal reference solution? Try solving it independently first!'
-          )
-        )
-      ) {
-        setCode(project.solutionCode);
-        setShowSolution(true);
-      }
+      setShowConfirmSolutionModal(true);
     } else {
       setCode(project.starterCode);
       setShowSolution(false);
     }
+  };
+
+  const handleConfirmSolution = () => {
+    setCode(project.solutionCode);
+    setShowSolution(true);
+    setShowConfirmSolutionModal(false);
   };
 
   return (
@@ -374,6 +406,55 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
           />
         </div>
       </div>
+
+      {/* Accessible Solution Confirmation Modal */}
+      {showConfirmSolutionModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-solution-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setShowConfirmSolutionModal(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 font-sans text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 text-amber-600 dark:text-amber-400">
+              <div className="p-3 rounded-2xl bg-amber-100 dark:bg-amber-950/50">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h3 id="confirm-solution-title" className="text-lg font-bold text-slate-900 dark:text-white">
+                {t('តើអ្នកចង់មើលចម្លើយគំរូមែនទេ?', 'Reveal Reference Solution?')}
+              </h3>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              {t(
+                'ការសរសេរកូដ និងដោះស្រាយបញ្ហាដោយខ្លួនឯង គឺជាវិធីល្អបំផុតដើម្បីពង្រឹងជំនាញ Problem Solving និង Software Engineering។ តើអ្នកពិតជាចង់ផ្ទុកដំណោះស្រាយគំរូចូល Editor មែនទេ?',
+                'Solving challenges independently is the best way to master Java and problem-solving skills. Are you sure you want to load the reference solution into the editor?'
+              )}
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowConfirmSolutionModal(false)}
+              >
+                {t('ត្រឡប់ទៅសរសេរកូដបន្ត', 'Keep Trying')}
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleConfirmSolution}
+              >
+                {t('យល់ព្រម មើលចម្លើយ', 'Yes, Show Solution')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

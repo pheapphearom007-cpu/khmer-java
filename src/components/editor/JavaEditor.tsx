@@ -109,21 +109,23 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Font size adjustment */}
-          <div className="hidden sm:flex items-center gap-1 bg-slate-700/50 rounded-lg px-2 py-0.5 text-slate-300">
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Font size adjustment (Accessible across mobile and desktop) */}
+          <div className="flex items-center gap-1 bg-slate-700/50 rounded-lg px-2 py-1 text-slate-300">
             <button
               onClick={() => setFontSize((s) => Math.max(12, s - 1))}
-              className="px-1 hover:text-white"
-              title="Decrease font size"
+              className="px-1.5 py-0.5 hover:text-white min-h-[32px] min-w-[24px] flex items-center justify-center font-bold"
+              title={t('បន្ថយទំហំអក្សរ', 'Decrease font size')}
+              aria-label={t('បន្ថយទំហំអក្សរ', 'Decrease font size')}
             >
               -
             </button>
-            <span className="text-[11px] font-mono">{fontSize}px</span>
+            <span className="text-[11px] font-mono select-none">{fontSize}px</span>
             <button
               onClick={() => setFontSize((s) => Math.min(22, s + 1))}
-              className="px-1 hover:text-white"
-              title="Increase font size"
+              className="px-1.5 py-0.5 hover:text-white min-h-[32px] min-w-[24px] flex items-center justify-center font-bold"
+              title={t('បង្កើនទំហំអក្សរ', 'Increase font size')}
+              aria-label={t('បង្កើនទំហំអក្សរ', 'Increase font size')}
             >
               +
             </button>
@@ -132,10 +134,11 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
           {/* Copy Button */}
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-200 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 min-h-[40px] rounded-xl bg-slate-700/60 hover:bg-slate-700 text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
             title={t('ចម្លងកូដ', 'Copy code')}
+            aria-label={t('ចម្លងកូដ', 'Copy code')}
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" /> : <Copy className="w-3.5 h-3.5" aria-hidden="true" />}
             <span className="hidden sm:inline">{copied ? t('បានចម្លង', 'Copied') : t('ចម្លង', 'Copy')}</span>
           </button>
 
@@ -143,10 +146,11 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
           {!readOnly && (
             <button
               onClick={handleResetClick}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-200 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 min-h-[40px] rounded-xl bg-slate-700/60 hover:bg-slate-700 text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
               title={t('កំណត់កូដឡើងវិញ', 'Reset code')}
+              aria-label={t('កំណត់កូដឡើងវិញ', 'Reset code')}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="hidden sm:inline">{t('កំណត់ឡើងវិញ', 'Reset')}</span>
             </button>
           )}
@@ -155,7 +159,7 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
           <button
             onClick={() => onRun(editorValue)}
             disabled={isRunning || isExecutionDisabled}
-            className={`flex items-center gap-1.5 px-3.5 py-1 rounded-xl text-white font-semibold text-xs shadow-sm transition-all active:scale-95 ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 min-h-[40px] rounded-xl text-white font-semibold text-xs shadow-sm transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
               isExecutionDisabled
                 ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
                 : 'bg-rose-600 hover:bg-rose-500 disabled:bg-rose-900/60'
@@ -165,20 +169,25 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
                 ? t('សេវាកម្មរត់កូដមិនទាន់កំណត់ (Execution unconfigured)', 'Execution service unconfigured')
                 : 'Ctrl+Enter / Cmd+Enter'
             }
+            aria-label={
+              isExecutionDisabled
+                ? t('សេវាកម្មរត់កូដមិនទាន់កំណត់ (Execution unconfigured)', 'Execution service unconfigured')
+                : t('ដំណើរការកូដ Java', 'Run Java code')
+            }
           >
             {isRunning ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
                 <span>{t('កំពុងរត់...', 'Running...')}</span>
               </>
             ) : isExecutionDisabled ? (
               <>
-                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
                 <span>{t('មិនទាន់កំណត់', 'Unconfigured')}</span>
               </>
             ) : (
               <>
-                <Play className="w-3.5 h-3.5 fill-current" />
+                <Play className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
                 <span>{t('ដំណើរការ', 'Run')}</span>
                 <kbd className="hidden md:inline text-[9px] font-mono px-1 py-0.2 bg-rose-700/70 rounded">
                   Ctrl+↵
@@ -247,6 +256,14 @@ export const JavaEditor: React.FC<JavaEditorProps> = ({
             tabSize: 4,
             bracketPairColorization: { enabled: true },
             padding: { top: 12, bottom: 12 },
+            wordWrap: 'on',
+            accessibilitySupport: 'on',
+            ariaLabel: 'Java Source Code Editor',
+            smoothScrolling: true,
+            scrollbar: {
+              verticalScrollbarSize: 8,
+              horizontalScrollbarSize: 8,
+            },
           }}
         />
       </div>

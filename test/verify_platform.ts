@@ -114,6 +114,21 @@ ALL_LESSONS.forEach((lesson) => {
     });
   }
 
+  // Interactive Exercise with Verified Expected Output
+  if (!lesson.exercise) {
+    console.error(`❌ Lesson ${id} missing exercise`);
+    failed = true;
+  } else {
+    if (!lesson.exercise.starterCode || !lesson.exercise.solutionCode || !lesson.exercise.expectedOutput) {
+      console.error(`❌ Lesson ${id} exercise missing starterCode, solutionCode, or expectedOutput`);
+      failed = true;
+    }
+    if (!lesson.exercise.hintsKm || lesson.exercise.hintsKm.length === 0) {
+      console.error(`❌ Lesson ${id} exercise missing hintsKm`);
+      failed = true;
+    }
+  }
+
   // Quizzes with Hints & Explanations
   if (!lesson.quizzes || lesson.quizzes.length < 2) {
     console.error(`❌ Lesson ${id} has insufficient quizzes (found ${lesson.quizzes?.length}, expected >= 2)`);
@@ -141,6 +156,7 @@ console.log(`    - Line-by-line Java code breakdowns`);
 console.log(`    - Common mistakes with Bad vs Good comparisons`);
 console.log(`    - At least 3 practice questions per lesson (total: ${ALL_LESSONS.reduce((acc, l) => acc + (l.practiceQuestions?.length || 0), 0)} questions)`);
 console.log(`    - Progressive quizzes with hints and explanations`);
+console.log(`    - 27 interactive exercises with validated expected outputs`);
 console.log(`    - Direct W3Schools curriculum reference links`);
 
 // 3. Verify 5 Guided Projects

@@ -39,14 +39,44 @@ function getKhmerErrorDiagnosis(stderr: string): string | null {
   if (stderr.includes('cannot find symbol')) {
     return '💡 គន្លឹះដោះស្រាយ: Java រកមិនឃើញអថេរ ឬ Method ដែលអ្នកបានហៅឡើយ។ សូមពិនិត្យអក្ខរាវិរុទ្ធ (Spelling) ថាតើឈ្មោះដូចគ្នានឹងការប្រកាសដែរឬទេ (Java ប្រកាន់អក្សរតូចធំ Case-sensitive)។';
   }
+  if (stderr.includes('possible lossy conversion')) {
+    return '💡 គន្លឹះដោះស្រាយ: Java មិនអនុញ្ញាតឱ្យបញ្ចូលតម្លៃ double ចូលក្នុងអថេរ int ដោយស្វ័យប្រវត្តិទេព្រោះវាអាចបាត់បង់ទសភាគ។ សូមប្រើ Type Casting "(int) value" ប្រសិនបើអ្នកពិតជាចង់កាត់ទសភាគចោល។';
+  }
+  if (stderr.includes('might not have been initialized')) {
+    return '💡 គន្លឹះដោះស្រាយ: អថេរ Local មិនទាន់ត្រូវបានកំណត់តម្លៃដំបូង (Initial Value) ឡើយ មុនពេលអ្នកយកវាទៅប្រើ។ សូមកំណត់តម្លៃដំបូង ឧទាហរណ៍ "int x = 0;" ឬ "String s = \"\";"។';
+  }
+  if (stderr.includes('cannot be referenced from a static context')) {
+    return '💡 គន្លឹះដោះស្រាយ: អ្នកមិនអាចហៅ Method ឬ Field ធម្មតា (Instance Member) ដោយផ្ទាល់ចេញពី "public static void main" បានឡើយ។ សូមបង្កើត Object ជាមុនតាមរយៈ "new MyClass().method()" ឬបន្ថែមពាក្យ "static" ពីមុខ Method នោះ។';
+  }
+  if (stderr.includes('missing return statement')) {
+    return '💡 គន្លឹះដោះស្រាយ: Method ត្រូវបានប្រកាសថាត្រូវ Return តម្លៃ (មិនមែន void ទេ) ប៉ុន្តែអ្នកភ្លេចសរសេរពាក្យបញ្ជា "return ..." នៅចុងបញ្ចប់ ឬក្នុងប្លុក if/else មួយចំនួន។';
+  }
+  if (stderr.includes('unreachable')) {
+    return '💡 គន្លឹះដោះស្រាយ: បន្ទាត់កូដនេះស្ថិតនៅខាងក្រោយពាក្យ "return", "break", ឬ "throw" ដូច្នេះ JVM នឹងមិនអាចដំណើរការមកដល់បន្ទាត់នេះឡើយ (Unreachable Code)។';
+  }
+  if (stderr.includes('class, interface, enum, or record expected')) {
+    return '💡 គន្លឹះដោះស្រាយ: មានសញ្ញាវង់ក្រចកទំពក់ "}" លើស ឬមានកូដ Statement សរសេរនៅខាងក្រៅប្លុក Class។ សូមពិនិត្យមើលថាតើកូដទាំងអស់ស្ថិតនៅក្នុង "public class Main { ... }" ដែរឬទេ។';
+  }
+  if (stderr.includes('incompatible types') && !stderr.includes('lossy conversion')) {
+    return '💡 គន្លឹះដោះស្រាយ: ប្រភេទ Data Type មិនត្រូវគ្នាឡើយ ឧទាហរណ៍អ្នកព្យាយាមកំណត់តម្លៃ String ទៅក្នុងអថេរ int ឬ Object ទៅ Primitive។';
+  }
   if (stderr.includes('is public, should be declared in a file named')) {
     return '💡 គន្លឹះដោះស្រាយ: នៅក្នុង Sandbox ប្រសិនបើអ្នកបង្កើត Class ច្រើន សូមដកពាក្យ "public" ចេញពី Class ជំនួយ ដោយទុកត្រឹម "class Name { ... }"។';
   }
   if (stderr.includes('ArrayIndexOutOfBoundsException')) {
     return '💡 គន្លឹះដោះស្រាយ: អ្នកបានហៅ Index លើសពីទំហំជាក់ស្តែងនៃ Array។ សូមចាំថា Array រាប់ចាប់ពី 0 ដល់ length - 1 (បើ array ទំហំ 5 មាន Index ពី 0 ដល់ 4 ប៉ុណ្ណោះ)។';
   }
+  if (stderr.includes('StringIndexOutOfBoundsException')) {
+    return '💡 គន្លឹះដោះស្រាយ: អ្នកបានហៅ Index តួអក្សរលើសពីប្រវែងពិតប្រាកដនៃ String (តាមរយៈ charAt() ឬ substring())។ សូមចាំថា Index នៃ String រាប់ចាប់ពី 0 ដល់ length() - 1។';
+  }
   if (stderr.includes('NullPointerException')) {
     return '💡 គន្លឹះដោះស្រាយ: Object ដែលអ្នកកំពុងហៅ method ឬ field មិនទាន់ត្រូវបានបង្កើត (Instantiate) ដោយពាក្យ "new" នៅឡើយទេ (តម្លៃនៅជា null)។';
+  }
+  if (stderr.includes('NumberFormatException')) {
+    return '💡 គន្លឹះដោះស្រាយ: កម្មវិធីមិនអាចបម្លែងខ្សែអក្សរ (String) ទៅជាលេខបានទេ (ឧទាហរណ៍ "abc" មិនអាចបម្លែងជា int បានឡើយ)។ សូមប្រើ try-catch ជុំវិញ "Integer.parseInt()" ដើម្បីការពារកុំឱ្យគាំង។';
+  }
+  if (stderr.includes('NoSuchElementException')) {
+    return '💡 គន្លឹះដោះស្រាយ: Scanner បានព្យាយាមអានទិន្នន័យ (តាមរយៈ next(), nextLine(), nextInt()) ប៉ុន្តែគ្មានទិន្នន័យ Stdin ទៀតឡើយ។ សូមបញ្ចូលទិន្នន័យក្នុងប្រអប់ Stdin ឬប្រើ "scanner.hasNext()" ពិនិត្យជាមុន។';
   }
   if (stderr.includes('ArithmeticException: / by zero')) {
     return '💡 គន្លឹះដោះស្រាយ: កម្មវិធីបានព្យាយាមចែកចំនួនគត់នឹង 0 (Integer Division by Zero) ដែលច្បាប់គណិតវិទ្យាមិនអនុញ្ញាតឡើយ។';
@@ -141,7 +171,7 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
               {result.status === 'timeout' && (
                 <Badge variant="danger" size="xs">
                   <Clock className="w-3 h-3 mr-1" />
-                  {t('ផុតកំណត់ពេល (15s)', 'Timed Out')}
+                  {t('ផុតកំណត់ពេល (Timeout)', 'Timed Out')}
                 </Badge>
               )}
               {result.status === 'service_unavailable' && (

@@ -33,6 +33,17 @@ export const CurriculumSidebar: React.FC<CurriculumSidebarProps> = ({
   const location = useLocation();
   const { isLessonCompleted, isBookmarked } = useProgress();
 
+  // Escape key listener for mobile drawer
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpenMobile) {
+        onCloseMobile();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpenMobile, onCloseMobile]);
+
   // Track expanded modules in accordion
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>(() => {
     // Expand the module matching current lesson
@@ -71,13 +82,14 @@ export const CurriculumSidebar: React.FC<CurriculumSidebarProps> = ({
             {/* Module Accordion Header */}
             <button
               onClick={() => toggleModule(module.id)}
-              className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+              aria-expanded={isExpanded}
+              className="w-full px-3 py-2.5 min-h-[44px] flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
             >
               <div className="flex items-center gap-2 min-w-0 pr-2">
                 {isExpanded ? (
-                  <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
                 ) : (
-                  <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
                 )}
                 <span className="font-bold text-xs text-slate-900 dark:text-white truncate">
                   {modTitle}
@@ -111,7 +123,8 @@ export const CurriculumSidebar: React.FC<CurriculumSidebarProps> = ({
                       key={lesson.id}
                       to={`/curriculum/${lesson.slug}`}
                       onClick={onCloseMobile}
-                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors ${
+                      aria-current={isCurrent ? 'page' : undefined}
+                      className={`flex items-center justify-between px-3 py-2.5 min-h-[40px] rounded-lg text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 ${
                         isCurrent
                           ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-bold border-l-2 border-rose-600'
                           : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'
@@ -119,15 +132,15 @@ export const CurriculumSidebar: React.FC<CurriculumSidebarProps> = ({
                     >
                       <div className="flex items-center gap-2 min-w-0 pr-2">
                         {isCompleted ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" aria-hidden="true" />
                         ) : (
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0" aria-hidden="true" />
                         )}
                         <span className="truncate">{lessonTitle}</span>
                       </div>
 
                       {bookmarked && (
-                        <Bookmark className="w-3 h-3 text-amber-500 fill-current shrink-0" />
+                        <Bookmark className="w-3 h-3 text-amber-500 fill-current shrink-0" aria-label="Bookmarked" />
                       )}
                     </Link>
                   );
@@ -193,27 +206,34 @@ export const CurriculumSidebar: React.FC<CurriculumSidebarProps> = ({
 
       {/* Mobile Drawer Slide-over */}
       {isOpenMobile && (
-        <div className="fixed inset-0 z-50 lg:hidden flex">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('មាតិកាមេរៀន Java', 'Java Curriculum Outline')}
+          className="fixed inset-0 z-50 lg:hidden flex"
+        >
           {/* Backdrop */}
           <div
             onClick={onCloseMobile}
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in"
+            aria-hidden="true"
           />
 
           {/* Drawer Container */}
           <div className="relative w-80 max-w-[85vw] bg-white dark:bg-slate-900 h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 shrink-0">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-rose-500" />
+                <BookOpen className="w-4 h-4 text-rose-500" aria-hidden="true" />
                 <span className="font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-white">
                   {t('មាតិកាមេរៀន Java', 'Java Curriculum Outline')}
                 </span>
               </div>
               <button
                 onClick={onCloseMobile}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                aria-label={t('បិទផ្ទាំងមាតិកា', 'Close sidebar')}
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 

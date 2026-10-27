@@ -17,7 +17,7 @@ function extractMainClassName(code: string): string | null {
 
 const MAX_CODE_SIZE = 50_000; // 50 KB
 const MAX_OUTPUT_SIZE = 100_000; // 100 KB
-const DEFAULT_TIMEOUT_MS = 15_000; // 15 seconds
+const DEFAULT_TIMEOUT_MS = 30_000; // 30 seconds
 
 export const executionService = {
   /**
@@ -192,14 +192,42 @@ export const executionService = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-      const response = await fetch('https://wandbox.org/api/compile.json', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
+      let response: Response;
+      try {
+        response = await fetch('https://wandbox.org/api/compile.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+
+        // Resilience: retry once after brief backoff on 429 or 503
+        if (!response.ok && (response.status === 429 || response.status === 503)) {
+          await new Promise((r) => setTimeout(r, 1200));
+          response = await fetch('https://wandbox.org/api/compile.json', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          });
+        }
+      } catch (fetchErr: any) {
+        if (controller.signal.aborted) throw fetchErr;
+        // Transient socket/network retry
+        await new Promise((r) => setTimeout(r, 1200));
+        response = await fetch('https://wandbox.org/api/compile.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+      }
 
       clearTimeout(timeoutId);
 
@@ -260,7 +288,7 @@ export const executionService = {
       if (isAbort) {
         return {
           stdout: '',
-          stderr: '⏱️ ការដំណើរការបានផុតកំណត់ពេលកំណត់ (Execution Timed Out: 15s limit)!\n\nកូដរបស់អ្នកដំណើរការយូរជាង ១៥ វិនាទី។ បញ្ហានេះច្រើនតែកើតឡើងដោយសារ៖\n១. រង្វិលជុំមិនចេះចប់ (Infinite Loop ដូចជា while(true) ឬ for(;;))\n២. ការហៅ Method Recursion គ្មានលក្ខខណ្ឌឈប់ (StackOverflow)\n៣. កម្មវិធីប្រើ Scanner រង់ចាំ Input ពីអ្នកប្រើប្រាស់ តែអ្នកមិនបានបញ្ចូលទិន្នន័យក្នុងប្រអប់ Stdin។',
+          stderr: '⏱️ ការដំណើរការបានផុតកំណត់ពេលកំណត់ (Execution Timed Out: 30s limit)!\n\nកូដរបស់អ្នកដំណើរការយូរជាង ៣០ វិនាទី។ បញ្ហានេះច្រើនតែកើតឡើងដោយសារ៖\n១. រង្វិលជុំមិនចេះចប់ (Infinite Loop ដូចជា while(true) ឬ for(;;))\n២. ការហៅ Method Recursion គ្មានលក្ខខណ្ឌឈប់ (StackOverflow)\n៣. កម្មវិធីប្រើ Scanner រង់ចាំ Input ពីអ្នកប្រើប្រាស់ តែអ្នកមិនបានបញ្ចូលទិន្នន័យក្នុងប្រអប់ Stdin។',
           exitCode: 124,
           isError: true,
           status: 'timeout',

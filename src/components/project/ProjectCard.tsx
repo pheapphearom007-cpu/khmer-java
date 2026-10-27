@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { GuidedProject } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { useProgress } from '../../context/ProgressContext';
-import { Clock, CheckCircle2, ArrowRight, Code } from 'lucide-react';
+import { Clock, ArrowRight } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
@@ -58,14 +58,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
       {/* Footer details */}
       <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-          <Code className="w-4 h-4 text-slate-400" />
+        <div className="text-xs text-slate-500 font-medium">
           <span>{project.requirements.length} {t('លក្ខខណ្ឌតម្រូវ', 'requirements')}</span>
         </div>
 
         {completed ? (
-          <Badge variant="success" size="sm">
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+          <Badge variant="success" size="sm" dot>
             {t('បានបញ្ចប់', 'Completed')}
           </Badge>
         ) : (

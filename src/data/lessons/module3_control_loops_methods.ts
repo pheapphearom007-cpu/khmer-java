@@ -205,6 +205,7 @@ String category = switch (grade) {
         System.out.printf("អាយុ: %d ឆ្នាំ -> តម្លៃសំបុត្រ: $%.2f%n", age, price);
     }
 }`,
+        expectedOutput: 'អាយុ: 65 ឆ្នាំ -> តម្លៃសំបុត្រ: $4.00',
         hintsKm: [
           'ប្រើ `if (age < 12)`',
           'ប្រើ `else if (age < 60)` សម្រាប់មនុស្សពេញវ័យ',
@@ -486,6 +487,16 @@ while (i < 5) {
         }
     }
 }`,
+        expectedOutput: `7 x  1 =  7
+7 x  2 = 14
+7 x  3 = 21
+7 x  4 = 28
+7 x  5 = 35
+7 x  6 = 42
+7 x  7 = 49
+7 x  8 = 56
+7 x  9 = 63
+7 x 10 = 70`,
         hintsKm: [
           'ប្រើ `for (int i = 1; i <= 10; i++)`',
           'គណនាផលគុណ `number * i` ក្នុង loop',
@@ -765,6 +776,8 @@ for (int i = 0; i < arr.length; i++) { // ប្រើ < ត្រឹមត្�
         System.out.printf("មធ្យមភាគ: %.2f%n", average);
     }
 }`,
+        expectedOutput: `ផលបូកសរុប: 236
+មធ្យមភាគ: 47.20`,
         hintsKm: [
           'ប្រើ for-each loop ដើម្បីបូកសន្សំចូលក្នុងអថេរ `sum`',
           'គណនា `(double) sum / numbers.length`',
@@ -1052,6 +1065,7 @@ public static void main(String[] args) {
         System.out.println("លេខ " + testNum + " ជាចំនួនបឋម: " + result);
     }
 }`,
+        expectedOutput: 'លេខ 17 ជាចំនួនបឋម: true',
         hintsKm: [
           'លេខ <= 1 មិនមែនជាចំនួនបឋមឡើយ (return false)',
           'រត់ Loop ចាប់ពី 2 ដល់ `i * i <= n` បើមានលេខចែកដាច់ `n % i == 0` នោះមិនមែនជាចំនួនបឋមទេ',

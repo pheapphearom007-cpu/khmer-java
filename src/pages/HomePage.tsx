@@ -1,16 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Coffee,
   Code2,
-  FolderGit2,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  Award,
-  Layers,
-  Terminal,
-  Sparkles,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useProgress } from '../context/ProgressContext';
@@ -35,14 +27,6 @@ export const HomePage: React.FC = () => {
       <section className="relative pt-10 sm:pt-16 pb-12 border-b border-slate-200/80 dark:border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-6">
-            {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2">
-              <Badge variant="brand" size="md" dot pulseDot>
-                <Coffee className="w-3.5 h-3.5 mr-1" />
-                {t('បណ្ឌិត្យសភាភាសា Java ជាភាសាខ្មែរ', 'Khmer-First Java Academy')}
-              </Badge>
-            </div>
-
             {/* Main Heading */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.25]">
               {t('រៀនសរសេរកូដ ', 'Master ')}
@@ -55,8 +39,8 @@ export const HomePage: React.FC = () => {
             {/* Subtitle */}
             <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-2xl mx-auto">
               {t(
-                'មេរៀនច្បាស់លាស់ជាភាសាខ្មែរផ្អែកលើស្តង់ដារ W3Schools Java Tutorial ជាមួយការរត់កូដលើ OpenJDK Sandbox ពិតប្រាកដ លំហាត់តេស្ត និងគម្រោងអនុវត្តចំនួន ៥ ជាក់ស្តែង។',
-                'Comprehensive Khmer curriculum structured with W3Schools standards, genuine OpenJDK 21 execution, progressive quizzes, and 5 portfolio projects.'
+                'មេរៀនច្បាស់លាស់ជាភាសាខ្មែរ រៀបចំតាមលំដាប់ប្រធានបទ W3Schools Java Tutorial ជាមួយការរត់កូដលើ OpenJDK Sandbox ពិតប្រាកដ លំហាត់តេស្ត និងគម្រោងអនុវត្តជាក់ស្តែង។',
+                'Comprehensive Khmer curriculum referencing W3Schools topic progressions, genuine OpenJDK 21 execution, progressive quizzes, and 5 portfolio projects.'
               )}
             </p>
 
@@ -75,24 +59,18 @@ export const HomePage: React.FC = () => {
               </Link>
             </div>
 
-            {/* Core Trust Indicators */}
-            <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold text-slate-700 dark:text-slate-300">
-              <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>{t('ភាសាខ្មែរ ១០០%', '100% Khmer')}</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>{t('OpenJDK 21 Sandbox', 'OpenJDK 21 Sandbox')}</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <FolderGit2 className="w-4 h-4 text-rose-500 shrink-0" />
-                <span>{t('៥ គម្រោងអនុវត្ត', '5 Guided Projects')}</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <Award className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>{t('W3Schools Aligned', 'W3Schools Aligned')}</span>
-              </div>
+            {/* Core Trust Indicators - Clean Typographic Metric Bar */}
+            <div className="pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-slate-600 dark:text-slate-400">
+              <span className="flex items-center gap-1.5 text-slate-900 dark:text-white font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                {t('ភាសាខ្មែរ ១០០%', '100% Khmer')}
+              </span>
+              <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
+              <span>{t('OpenJDK 21 Sandbox', 'OpenJDK 21 Sandbox')}</span>
+              <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
+              <span>{t('៥ គម្រោងអនុវត្ត', '5 Guided Projects')}</span>
+              <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
+              <span>{t('២៧ មេរៀនពេញលេញ', '27 Comprehensive Lessons')}</span>
             </div>
           </div>
         </div>
@@ -188,10 +166,9 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-              <Terminal className="w-4 h-4" />
-              <span>{t('សាកល្បងសរសេរកូដភ្លាមៗ', 'Instant Live Execution')}</span>
-            </div>
+            <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+              {t('សាកល្បងសរសេរកូដភ្លាមៗ', 'Instant Live Execution')}
+            </p>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
               {t('សាកល្បងរត់កូដ Java លើ Sandbox ពិតប្រាកដ', 'Live Java Code Playground')}
             </h2>
@@ -217,12 +194,8 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-              <Layers className="w-4 h-4" />
-              <span>{t('ផ្លូវនៃការសិក្សា', 'Curriculum Roadmap')}</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
-              {t('កម្មវិធីសិក្សា Java តាមស្តង់ដារ W3Schools', 'W3Schools-Aligned Curriculum')}
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+              {t('កម្មវិធីសិក្សា Java បែបទំនើប ៨ ម៉ូឌុល', '8 Modern Java Learning Modules')}
             </h2>
           </div>
           <Link to="/curriculum">
@@ -279,11 +252,7 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-              <FolderGit2 className="w-4 h-4" />
-              <span>{t('គម្រោងអនុវត្តផ្ទាល់ដៃ', 'Practical Projects')}</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
               {t('៥ គម្រោងអនុវត្តជាក់ស្តែង (Guided Projects)', '5 Guided Portfolio Projects')}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
@@ -345,7 +314,6 @@ export const HomePage: React.FC = () => {
         <div className="rounded-2xl bg-slate-900 text-white p-8 sm:p-12 border border-slate-800 shadow-md">
           <div className="max-w-2xl space-y-4">
             <Badge variant="brand" size="sm">
-              <Sparkles className="w-3 h-3 mr-1 text-rose-400" />
               {t('ឥតគិតថ្លៃ ១០០% សម្រាប់សិស្សកម្ពុជា', '100% Free for Cambodian Students')}
             </Badge>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">

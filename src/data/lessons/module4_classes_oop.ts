@@ -216,6 +216,9 @@ public class Main {
         acc.withdraw(30.0);
     }
 }`,
+        expectedOutput: `គណនី: ABA-123456 | សមតុល្យដើម: $100.0
+ដាក់ប្រាក់: +$50.00 | សមតុល្យថ្មី: $150.00
+ដកប្រាក់: -$30.00 | សមតុល្យនៅសល់: $120.00`,
         hintsKm: [
           'ក្នុង method `deposit(double amount)` ត្រូវបូក `balance += amount;`',
           'ក្នុង method `withdraw(double amount)` ត្រូវពិនិត្យ `amount <= balance` មុននឹងដក',
@@ -549,6 +552,8 @@ public class Main {
         car2.display();
     }
 }`,
+        expectedOutput: `ឡាន: Toyota Prius (ឆ្នាំ 2022)
+ឡាន: Tesla Model 3 (ឆ្នាំ 2026)`,
         hintsKm: [
           'ប្រើ `this.brand = brand;` ក្នុង constructor ធំ',
           'ក្នុង constructor តូច ប្រើ `this(brand, model, 2026);` នៅបន្ទាត់ទីមួយ',
@@ -896,6 +901,9 @@ public class Main {
         System.out.printf("តម្លៃក្រោយកែប្រែ: $%.2f%n", p.getPrice());
     }
 }`,
+        expectedOutput: `ផលិតផល: កុំព្យូទ័រយួរដៃ | តម្លៃ: $850.00
+តម្លៃផលិតផលត្រូវតែធំជាង 0!
+តម្លៃក្រោយកែប្រែ: $799.00`,
         hintsKm: [
           'ដាក់ `private String name;` និង `private double price;`',
           'ក្នុង `setPrice` ដាក់ `if (price > 0) this.price = price;`',

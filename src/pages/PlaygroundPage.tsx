@@ -2,7 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CodePlayground } from '../components/editor/CodePlayground';
 import { useLanguage } from '../context/LanguageContext';
-import { Code2, ShieldCheck, Zap, Info } from 'lucide-react';
+import { ShieldCheck, Zap, Info } from 'lucide-react';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { findLessonBySlug } from '../data/curriculum';
@@ -22,7 +22,6 @@ export const PlaygroundPage: React.FC = () => {
       <div className="space-y-3 max-w-3xl">
         <div className="flex items-center gap-2">
           <Badge variant="brand" size="sm">
-            <Code2 className="w-3.5 h-3.5 mr-1" />
             <span>{t('កន្លែងរត់កូដឯករាជ្យ', 'Independent Code Sandbox')}</span>
           </Badge>
           {lesson && (

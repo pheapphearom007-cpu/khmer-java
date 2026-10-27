@@ -1,0 +1,30 @@
+# ====================================================================
+# Render Blueprint Configuration (render.yaml)
+# Project: Khmer Java Academy
+# Developer: Pheap Phirom
+# ====================================================================
+
+services:
+  - type: web
+    name: khmer-java-academy
+    runtime: node
+    plan: free
+    region: singapore # Nearest low-latency region for Cambodian learners
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: AI_TUTOR_PROVIDER
+        value: gemini
+      # The following sensitive variables are securely configured in your Render Dashboard:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false

@@ -97,15 +97,15 @@ export const AuthPage: React.FC = () => {
 
         {/* Alerts */}
         {errorMsg && (
-          <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div role="alert" aria-live="assertive" className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {successMsg && (
-          <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-300 text-xs flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+          <div role="alert" aria-live="assertive" className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-300 text-xs flex items-start gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
             <span>{successMsg}</span>
           </div>
         )}
@@ -114,36 +114,38 @@ export const AuthPage: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
           {mode === 'signup' && (
             <div>
-              <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="auth-fullname" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
                 {t('ឈ្មោះពេញ (Full Name)', 'Full Name')}
               </label>
               <div className="relative">
-                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                 <input
+                  id="auth-fullname"
                   type="text"
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="សុខ ចាន់ធា"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
+                  className="w-full pl-9 pr-3 py-2 min-h-[44px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="auth-email" className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
               {t('អ៊ីមែល (Email)', 'Email Address')}
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
               <input
+                id="auth-email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="student@example.com"
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
+                className="w-full pl-9 pr-3 py-2 min-h-[44px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
               />
             </div>
           </div>
@@ -151,28 +153,29 @@ export const AuthPage: React.FC = () => {
           {mode !== 'reset' && (
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="font-medium text-slate-700 dark:text-slate-300">
+                <label htmlFor="auth-password" className="font-medium text-slate-700 dark:text-slate-300">
                   {t('ពាក្យសម្ងាត់ (Password)', 'Password')}
                 </label>
                 {mode === 'signin' && (
                   <button
                     type="button"
                     onClick={() => setMode('reset')}
-                    className="text-[11px] text-rose-600 hover:underline"
+                    className="text-[11px] text-rose-600 hover:underline min-h-[36px] flex items-center"
                   >
                     {t('ភ្លេចពាក្យសម្ងាត់?', 'Forgot password?')}
                   </button>
                 )}
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                 <input
+                  id="auth-password"
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
+                  className="w-full pl-9 pr-3 py-2 min-h-[44px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
                 />
               </div>
             </div>
@@ -185,6 +188,7 @@ export const AuthPage: React.FC = () => {
             fullWidth
             isLoading={loading}
             rightIcon={<ArrowRight className="w-4 h-4" />}
+            className="min-h-[44px]"
           >
             {mode === 'signin'
               ? t('ចូលគណនី', 'Sign In')

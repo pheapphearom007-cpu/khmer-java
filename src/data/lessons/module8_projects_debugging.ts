@@ -192,6 +192,7 @@ public class Main {
         System.out.println("មធ្យមភាគ: " + computeAverage(scores));
     }
 }`,
+        expectedOutput: 'មធ្យមភាគ: 85.0',
         hintsKm: [
           'ប្តូរ `i <= arr.length` មក `i < arr.length`',
           'បម្លែង `(double) sum / arr.length` ដើម្បីកុំឱ្យបាត់ទសភាគ',
@@ -533,6 +534,9 @@ public class Main {
         System.out.println("សមតុល្យ ACC-002: $" + a2.getBalance());
     }
 }`,
+        expectedOutput: `✅ ផ្ទេរប្រាក់ $75.00 ពី ACC-001 ទៅ ACC-002 ជោគជ័យ!
+សមតុល្យ ACC-001: $125.0
+សមតុល្យ ACC-002: $125.0`,
         hintsKm: [
           'ក្នុង `transfer` ពិនិត្យ `amount > 0` និង `from.getBalance() >= amount`',
           'កែប្រែសមតុល្យទាំងពីរតាម setters',

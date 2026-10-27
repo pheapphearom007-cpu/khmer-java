@@ -7,6 +7,7 @@ import {
 } from '../data/curriculum';
 import { useLanguage } from '../context/LanguageContext';
 import { useProgress } from '../context/ProgressContext';
+import { useAITutor } from '../context/AITutorContext';
 import { JavaEditor } from '../components/editor/JavaEditor';
 import { OutputPanel } from '../components/editor/OutputPanel';
 import { QuizComponent } from '../components/quiz/QuizComponent';
@@ -17,7 +18,6 @@ import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { Card } from '../components/common/Card';
 import {
-  BookOpen,
   Bookmark,
   CheckCircle2,
   Clock,
@@ -28,13 +28,13 @@ import {
   AlertTriangle,
   Lightbulb,
   Check,
-  Trophy,
   ListTree,
-  BookMarked,
   HelpCircle,
   Play,
-  Sparkles,
+  Bot,
+  FileEdit,
 } from 'lucide-react';
+import { LessonNotesModal } from '../components/lesson/LessonNotesModal';
 
 export const LessonPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -45,14 +45,20 @@ export const LessonPage: React.FC = () => {
     markLessonComplete,
     isBookmarked,
     toggleBookmark,
+    getNote,
     setLastLesson,
+    awardXp,
+    logLearningActivity,
+    triggerCelebration,
   } = useProgress();
+  const { openTutor } = useAITutor();
 
   const lesson = findLessonBySlug(slug || '');
 
   // Desktop sidebar collapse state & mobile drawer state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
 
   // Track last lesson visited
   useEffect(() => {
@@ -74,6 +80,7 @@ export const LessonPage: React.FC = () => {
   const [isExerciseRunning, setIsExerciseRunning] = useState(false);
   const [showExerciseSolution, setShowExerciseSolution] = useState(false);
   const [showExerciseHints, setShowExerciseHints] = useState(false);
+  const [exerciseSolved, setExerciseSolved] = useState(false);
 
   // Practice Questions state (hints and solution toggles)
   const [revealedPracticeHints, setRevealedPracticeHints] = useState<Record<string, boolean>>({});
@@ -104,6 +111,7 @@ export const LessonPage: React.FC = () => {
       setExerciseResult(null);
       setShowExerciseSolution(false);
       setShowExerciseHints(false);
+      setExerciseSolved(false);
     }
   }, [slug, lesson]);
 
@@ -137,6 +145,7 @@ export const LessonPage: React.FC = () => {
   const handleRunExample = async (codeToRun: string) => {
     setIsRunning(true);
     try {
+      logLearningActivity('lesson_example');
       const res = await executionService.executeJava({
         code: codeToRun,
         stdin,
@@ -160,10 +169,21 @@ export const LessonPage: React.FC = () => {
   const handleRunExercise = async (codeToRun: string) => {
     setIsExerciseRunning(true);
     try {
+      logLearningActivity('lesson_exercise');
       const res = await executionService.executeJava({
         code: codeToRun,
       });
       setExerciseResult(res);
+
+      if (res.status === 'success' && lesson?.exercise?.expectedOutput) {
+        const normalizedActual = (res.stdout || '').trim();
+        const normalizedExpected = lesson.exercise.expectedOutput.trim();
+        if (normalizedActual === normalizedExpected) {
+          setExerciseSolved(true);
+          awardXp(15, `exercise_${lesson.exercise.id}`, 'Exercise Solution Matched');
+          triggerCelebration();
+        }
+      }
     } catch (err: any) {
       setExerciseResult({
         stdout: '',
@@ -225,8 +245,19 @@ export const LessonPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Bookmark & Completion Action Buttons */}
+          {/* Bookmark, Notes & Completion Action Buttons */}
           <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant={getNote(lesson.slug) ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => setShowNotesModal(true)}
+              leftIcon={<FileEdit className="w-3.5 h-3.5" />}
+            >
+              <span className="hidden sm:inline">
+                {getNote(lesson.slug) ? t('កំណត់ចំណាំ ✓', 'Notes ✓') : t('កំណត់ចំណាំ', 'Notes')}
+              </span>
+            </Button>
+
             <Button
               variant={bookmarked ? 'primary' : 'outline'}
               size="sm"
@@ -272,7 +303,7 @@ export const LessonPage: React.FC = () => {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 hover:underline font-semibold ml-1"
               >
-                <span>W3Schools Reference</span>
+                <span>{t('ឯកសារយោង W3Schools', 'External Ref: W3Schools')}</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
             )}
@@ -294,20 +325,20 @@ export const LessonPage: React.FC = () => {
             onClick={() => scrollToSection('sec-objectives')}
             className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
           >
-            🎯 {t('គោលបំណង', 'Objectives')}
+            {t('គោលបំណង', 'Objectives')}
           </button>
           <button
             onClick={() => scrollToSection('sec-theory')}
             className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
           >
-            📖 {t('ទ្រឹស្តី', 'Theory')}
+            {t('ទ្រឹស្តី', 'Theory')}
           </button>
           {lesson.vocabulary && lesson.vocabulary.length > 0 && (
             <button
               onClick={() => scrollToSection('sec-vocab')}
               className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
             >
-              📚 {t('វាក្យសព្ទ', 'Vocabulary')}
+              {t('វាក្យសព្ទ', 'Vocabulary')}
             </button>
           )}
           {lesson.examples.length > 0 && (
@@ -315,7 +346,7 @@ export const LessonPage: React.FC = () => {
               onClick={() => scrollToSection('sec-editor')}
               className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
             >
-              💻 {t('ឧទាហរណ៍កូដ', 'Code Example')}
+              {t('ឧទាហរណ៍កូដ', 'Code Example')}
             </button>
           )}
           {lesson.commonMistakes.length > 0 && (
@@ -323,7 +354,7 @@ export const LessonPage: React.FC = () => {
               onClick={() => scrollToSection('sec-mistakes')}
               className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
             >
-              ⚠️ {t('កំហុសទូទៅ', 'Mistakes')}
+              {t('កំហុសទូទៅ', 'Mistakes')}
             </button>
           )}
           {lesson.exercise && (
@@ -331,7 +362,7 @@ export const LessonPage: React.FC = () => {
               onClick={() => scrollToSection('sec-exercise')}
               className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
             >
-              ✍️ {t('លំហាត់', 'Exercise')}
+              {t('លំហាត់', 'Exercise')}
             </button>
           )}
           {lesson.practiceQuestions && lesson.practiceQuestions.length > 0 && (
@@ -339,7 +370,7 @@ export const LessonPage: React.FC = () => {
               onClick={() => scrollToSection('sec-practice')}
               className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
             >
-              💡 {t('សំណួរអនុវត្ត', 'Practice Questions')}
+              {t('សំណួរអនុវត្ត', 'Practice Questions')}
             </button>
           )}
           {lesson.quizzes.length > 0 && (
@@ -347,7 +378,7 @@ export const LessonPage: React.FC = () => {
               onClick={() => scrollToSection('sec-quiz')}
               className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 whitespace-nowrap transition-colors"
             >
-              🏆 {t('តេស្ត Quiz', 'Quiz')}
+              {t('តេស្ត Quiz', 'Quiz')}
             </button>
           )}
         </div>
@@ -355,9 +386,8 @@ export const LessonPage: React.FC = () => {
         {/* Section: Learning Objectives */}
         <section id="sec-objectives">
           <Card className="bg-rose-50/50 dark:bg-rose-950/20 border-rose-200/70 dark:border-rose-900/50">
-            <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 mb-3">
-              <Trophy className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-              <span>{t('គោលបំណងនៃមេរៀន (Lesson Objectives)', 'Lesson Objectives')}</span>
+            <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-3">
+              {t('គោលបំណងនៃមេរៀន (Lesson Objectives)', 'Lesson Objectives')}
             </h3>
             <ul className="space-y-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
               {objectives.map((obj, i) => (
@@ -395,8 +425,7 @@ export const LessonPage: React.FC = () => {
         {/* Section: English Technical Vocabulary with Khmer Definitions */}
         {lesson.vocabulary && lesson.vocabulary.length > 0 && (
           <section id="sec-vocab" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
-            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
-              <BookMarked className="w-5 h-5 shrink-0" />
+            <div>
               <h3 className="font-bold text-slate-900 dark:text-white text-base">
                 {t('វាក្យសព្ទបច្ចេកទេស និងនិយមន័យ (Technical Vocabulary)', 'Technical Vocabulary & Definitions')}
               </h3>
@@ -430,10 +459,9 @@ export const LessonPage: React.FC = () => {
           <section id="sec-editor" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                  <BookOpen className="w-4 h-4" />
-                  <span>{t('ឧទាហរណ៍ជាក់ស្តែង', 'Interactive Code Example')}</span>
-                </div>
+                <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                  {t('ឧទាហរណ៍ជាក់ស្តែង', 'Interactive Code Example')}
+                </p>
                 <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">
                   {lesson.examples[0].title}
                 </h3>
@@ -453,6 +481,100 @@ export const LessonPage: React.FC = () => {
 
             {/* Java Code Editor & Output Panels */}
             <div className="space-y-4">
+              {/* AI Java Tutor Contextual Action Bar */}
+              <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-50/80 via-white to-amber-50/80 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-900 border border-rose-200/70 dark:border-rose-900/40 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 text-white flex items-center justify-center shadow-xs">
+                    <Bot className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <span>{t('លោកគ្រូ Java AI', 'Java AI Tutor')}</span>
+                      <Badge variant="brand" size="xs">Java 21</Badge>
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block leading-tight">
+                      {t('សកម្មភាពរហ័សផ្អែកលើកូដ និងមេរៀនបច្ចុប្បន្ន', 'Contextual actions based on current lesson & code')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() =>
+                      openTutor({
+                        code: editorCode,
+                        lessonTitle: t(lesson.titleKm, lesson.titleEn),
+                        lessonSlug: lesson.slug,
+                        action: 'explain_code',
+                      })
+                    }
+                  >
+                    {t('Explain Code', 'Explain Code')}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() =>
+                      openTutor({
+                        code: editorCode,
+                        error: result?.stderr,
+                        lessonTitle: t(lesson.titleKm, lesson.titleEn),
+                        lessonSlug: lesson.slug,
+                        action: 'find_bug',
+                      })
+                    }
+                  >
+                    {t('Find Bug', 'Find the Bug')}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() =>
+                      openTutor({
+                        code: editorCode,
+                        lessonTitle: t(lesson.titleKm, lesson.titleEn),
+                        lessonSlug: lesson.slug,
+                        action: 'give_hint',
+                      })
+                    }
+                  >
+                    {t('Give Hint', 'Give Me a Hint')}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() =>
+                      openTutor({
+                        lessonTitle: t(lesson.titleKm, lesson.titleEn),
+                        lessonSlug: lesson.slug,
+                        action: 'simplify',
+                      })
+                    }
+                  >
+                    {t('Simplify', 'Simplify')}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() =>
+                      openTutor({
+                        lessonTitle: t(lesson.titleKm, lesson.titleEn),
+                        lessonSlug: lesson.slug,
+                        action: 'generate_practice',
+                      })
+                    }
+                  >
+                    {t('Practice Challenge', 'Practice Challenge')}
+                  </Button>
+                </div>
+              </div>
+
               <JavaEditor
                 initialCode={lesson.examples[0].code}
                 value={editorCode}
@@ -518,18 +640,16 @@ export const LessonPage: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
                     {/* Bad code */}
                     <div className="p-3.5 rounded-xl bg-rose-950/20 border border-rose-800/40 text-rose-300 space-y-1">
-                      <div className="text-[11px] font-sans font-bold text-rose-400 flex items-center gap-1">
-                        <span>❌</span>
-                        <span>{t('កូដខុស (Incorrect)', 'Incorrect Code')}</span>
+                      <div className="text-[11px] font-sans font-bold text-rose-400">
+                        {t('កូដខុស (Incorrect)', 'Incorrect Code')}
                       </div>
                       <pre className="whitespace-pre-wrap">{mistake.badCode}</pre>
                     </div>
 
                     {/* Good code */}
                     <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-800/40 text-emerald-300 space-y-1">
-                      <div className="text-[11px] font-sans font-bold text-emerald-400 flex items-center gap-1">
-                        <span>✓</span>
-                        <span>{t('កូដត្រឹមត្រូវ (Correct)', 'Correct Code')}</span>
+                      <div className="text-[11px] font-sans font-bold text-emerald-400">
+                        {t('កូដត្រឹមត្រូវ (Correct)', 'Correct Code')}
                       </div>
                       <pre className="whitespace-pre-wrap">{mistake.goodCode}</pre>
                     </div>
@@ -549,9 +669,8 @@ export const LessonPage: React.FC = () => {
           <section id="sec-exercise" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
             <Card className="space-y-4">
               <div className="flex items-center justify-between gap-3">
-                <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-                  <Code2 className="w-5 h-5 text-rose-500" />
-                  <span>{t(lesson.exercise.titleKm, lesson.exercise.titleEn)}</span>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                  {t(lesson.exercise.titleKm, lesson.exercise.titleEn)}
                 </h3>
                 <Badge variant="brand" size="sm">
                   {t('លំហាត់អនុវត្ត', 'Practice Exercise')}
@@ -572,12 +691,30 @@ export const LessonPage: React.FC = () => {
                 height="300px"
               />
 
+              {/* Exercise Solved Success Banner */}
+              {exerciseSolved && (
+                <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex items-center justify-between gap-3 text-xs sm:text-sm animate-fadeIn">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">
+                      {t(
+                        'អបអរសាទរ! លទ្ធផលកូដរបស់អ្នកត្រូវនឹងលទ្ធផលរំពឹងទុក ១០០% (+15 XP)',
+                        'Congratulations! Your code output matches expected output 100% (+15 XP)'
+                      )}
+                    </span>
+                  </div>
+                  <Badge variant="success" size="sm">
+                    {t('ជោគជ័យ', 'Passed')}
+                  </Badge>
+                </div>
+              )}
+
               <OutputPanel
                 result={exerciseResult}
                 isRunning={isExerciseRunning}
                 stdin=""
                 onStdinChange={() => {}}
                 onClear={() => setExerciseResult(null)}
+                expectedOutput={lesson.exercise.expectedOutput}
               />
 
               {/* Hints & Solution buttons */}
@@ -626,8 +763,7 @@ export const LessonPage: React.FC = () => {
         {lesson.practiceQuestions && lesson.practiceQuestions.length > 0 && (
           <section id="sec-practice" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
-                <Sparkles className="w-5 h-5 shrink-0" />
+              <div>
                 <h3 className="font-bold text-slate-900 dark:text-white text-base">
                   {t('សំណួរអនុវត្តពង្រឹងសមត្ថភាព (Practice Questions)', 'Hands-on Practice Questions')}
                 </h3>
@@ -749,9 +885,8 @@ export const LessonPage: React.FC = () => {
         {/* Section: Lesson Skill Quiz */}
         {lesson.quizzes.length > 0 && (
           <section id="sec-quiz" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
-            <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-amber-500" />
-              <span>{t('តេស្តសមត្ថភាពចុងមេរៀន (Lesson Quiz)', 'Lesson Skill Quiz')}</span>
+            <h3 className="font-bold text-slate-900 dark:text-white text-base">
+              {t('តេស្តសមត្ថភាពចុងមេរៀន (Lesson Quiz)', 'Lesson Skill Quiz')}
             </h3>
             <QuizComponent
               lessonId={lesson.id}
@@ -805,6 +940,14 @@ export const LessonPage: React.FC = () => {
             </Link>
           )}
         </div>
+
+        {/* Personal Study Notes Modal */}
+        <LessonNotesModal
+          isOpen={showNotesModal}
+          onClose={() => setShowNotesModal(false)}
+          lessonSlug={lesson.slug}
+          lessonTitle={language === 'km' ? lesson.titleKm : lesson.titleEn}
+        />
       </div>
     </div>
   );

@@ -215,6 +215,7 @@ public class Main {
         ev.start();
     }
 }`,
+        expectedOutput: 'BYD Seal (អាគុយ 82 kWh) ចាប់ផ្តើមដំណើរការស្ងាត់ល្អគ្មានសំឡេង!',
         hintsKm: [
           'ក្នុង ElectricCar constructor ប្រើ `super(brand);` នៅបន្ទាត់ដំបូង',
           'ប្រើ `@Override` ពីលើ `start()` ក្នុង ElectricCar',
@@ -565,6 +566,8 @@ public class Main {
         }
     }
 }`,
+        expectedOutput: `📧 ផ្ញើអ៊ីមែល: កូដផ្ទៀងផ្ទាត់ OTP របស់អ្នកគឺ 8899
+📱 ផ្ញើសារ SMS ទៅទូរស័ព្ទ: កូដផ្ទៀងផ្ទាត់ OTP របស់អ្នកគឺ 8899`,
         hintsKm: [
           'Override method `send(String msg)` ក្នុង Subclasses ទាំងពីរ',
           'ប្រើ Loop រត់លើ `Notification[] channels`',
@@ -872,6 +875,8 @@ public class Main {
         player.pause();
     }
 }`,
+        expectedOutput: `▶️ កំពុងចាក់ចម្រៀង: បទចម្រៀង: ផ្ការីកលើមេឃ
+⏸️ បានផ្អាកចម្រៀង: បទចម្រៀង: ផ្ការីកលើមេឃ`,
         hintsKm: [
           'ក្នុង interface កំណត់ `void play();` និង `void pause();`',
           'ក្នុង AudioPlayer ប្រើ `implements Playable` ហើយ override methods ទាំងពីរ',

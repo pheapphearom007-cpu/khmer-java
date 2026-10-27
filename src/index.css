@@ -7,18 +7,31 @@
     --font-khmer: 'Kantumruy Pro', 'Noto Sans Khmer', system-ui, -apple-system, sans-serif;
   }
 
+  html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     font-family: var(--font-khmer);
-    line-height: 1.7;
+    line-height: 1.75;
     letter-spacing: 0.012em;
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Code font fallback */
+  /* Code font fallback and horizontal scroll handling */
   code, pre, kbd {
     font-family: 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
     font-feature-settings: 'liga' on, 'calt' on;
+  }
+
+  pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
   }
 }
 
@@ -52,15 +65,52 @@
 /* Khmer heading styling for balanced line breaks and vertical room */
 h1, h2, h3, h4, h5, h6 {
   word-break: break-word;
-  line-height: 1.45;
+  line-height: 1.5;
   letter-spacing: 0.005em;
+  padding-bottom: 0.05em; /* Prevents low subscript clipping */
 }
 
-/* Targeted transitions instead of dangerous universal selector */
+/* Prevent Khmer diacritic & subscript clipping in inline text */
+.font-khmer, [lang="km"] {
+  line-height: 1.8;
+  text-rendering: optimizeLegibility;
+}
+
+/* Targeted transitions instead of universal selector */
 a, button, input, textarea, select {
   transition-property: background-color, border-color, color, fill, stroke, box-shadow, transform;
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* WCAG 2.2 AA Focus Indicators: 2px ring with high contrast */
+:focus-visible {
+  outline: 2px solid #f43f5e !important;
+  outline-offset: 2px !important;
+}
+
+/* Mobile Form Input Sizing: minimum 16px to prevent iOS auto-zoom */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Respect Reduced-Motion Preference (WCAG 2.2 AA) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Subtle animation classes */

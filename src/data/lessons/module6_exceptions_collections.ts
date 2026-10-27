@@ -213,6 +213,9 @@ public class Main {
         System.out.println("តម្លៃ ២: " + val2);
     }
 }`,
+        expectedOutput: `⚠️ មិនអាចបម្លែង 'khmer_code' ទៅជាលេខបានទេ! ប្រើតម្លៃលំនាំដើម: 99
+តម្លៃ ១: 123
+តម្លៃ ២: 99`,
         hintsKm: [
           'ដាក់ `Integer.parseInt(text)` ក្នុងប្លុក `try`',
           'ចាប់ `catch (NumberFormatException e)` រួច `return defaultValue;`',
@@ -502,6 +505,10 @@ public class Main {
         System.out.println("នៅសល់ការងាររៀន Java: " + hasJava);
     }
 }`,
+        expectedOutput: `ការងារសរុប: 3
+បញ្ជីការងារ: [ហាត់ប្រាណពេលព្រឹក, រៀន Java 21 នៅ Khmer Java Academy, អានសៀវភៅ ៣០ នាទី]
+ក្រោយលុបការងារទី ១: [រៀន Java 21 នៅ Khmer Java Academy, អានសៀវភៅ ៣០ នាទី]
+នៅសល់ការងាររៀន Java: true`,
         hintsKm: [
           'ប្រើ `tasks.add(...)` សម្រាប់បន្ថែម',
           'ប្រើ `tasks.remove(0)` ដើម្បីលុបការងារទី ១',
@@ -770,21 +777,22 @@ LinkedHashMap<String, Integer> map = new LinkedHashMap<>(); // រក្សា�
         titleEn: 'Word Frequency Counter with HashMap',
         descriptionKm: 'ចូរសរសេរកូដរាប់ចំនួនពាក្យនីមួយៗក្នុង Array នៃខ្សែអក្សរដោយប្រើ `HashMap<String, Integer>`។',
         descriptionEn: 'Count frequencies of each word in a string array using HashMap.',
-        starterCode: `import java.util.HashMap;
-
-public class Main {
-    public static void main(String[] args) {
-        String[] words = {"java", "spring", "java", "docker", "java", "spring"};
-        // រាប់ចំនួនពាក្យ
-    }
-}`,
-        solutionCode: `import java.util.HashMap;
+        starterCode: `import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
         String[] words = {"java", "spring", "java", "docker", "java", "spring"};
-        HashMap<String, Integer> freq = new HashMap<>();
+        // រាប់ចំនួនពាក្យដោយប្រើ LinkedHashMap
+    }
+}`,
+        solutionCode: `import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class Main {
+    public static void main(String[] args) {
+        String[] words = {"java", "spring", "java", "docker", "java", "spring"};
+        LinkedHashMap<String, Integer> freq = new LinkedHashMap<>();
 
         for (String w : words) {
             freq.put(w, freq.getOrDefault(w, 0) + 1);
@@ -796,6 +804,10 @@ public class Main {
         }
     }
 }`,
+        expectedOutput: `=== ចំនួនពាក្យនីមួយៗ ===
+ពាក្យ 'java' កើតឡើង: 3 ដង
+ពាក្យ 'spring' កើតឡើង: 2 ដង
+ពាក្យ 'docker' កើតឡើង: 1 ដង`,
         hintsKm: [
           'ប្រើ `freq.getOrDefault(w, 0) + 1` ដើម្បីបូកបន្ថែមចំនួន',
           'ដាក់តម្លៃថ្មីចូលតាម `freq.put(w, count)`',
@@ -1104,9 +1116,11 @@ public class Main {
 
         Storage<Double> numStore = new Storage<>();
         numStore.store(99.95);
-        System.out.println("ទាញយกลេខ: " + numStore.retrieve());
+        System.out.println("ទាញយកលេខ: " + numStore.retrieve());
     }
 }`,
+        expectedOutput: `ទាញយកអត្ថបទ: ឯកសារ Java 21
+ទាញយកលេខ: 99.95`,
         hintsKm: [
           'ប្រើ field `private T item;`',
           'Method `store(T item)` និង `public T retrieve()`',
@@ -1437,6 +1451,8 @@ public class Main {
         new File(logFile).delete();
     }
 }`,
+        expectedOutput: `LOG -> INFO: កម្មវិធីបានចាប់ផ្តើម
+LOG -> SUCCESS: ភ្ជាប់ Database ជោគជ័យ`,
         hintsKm: [
           'ប្រើ `new FileWriter(filename, true)` ដោយមាន parameter `true` សម្រាប់ append',
           'ដាក់ក្នុង Try-with-resources',

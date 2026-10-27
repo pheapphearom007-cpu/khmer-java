@@ -152,14 +152,46 @@ export interface GlossaryTerm {
   exampleSnippet?: string;
 }
 
+export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
+
+export interface UserNote {
+  id?: string;
+  userId?: string;
+  lessonSlug: string;
+  noteText: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface UserPreferences {
+  theme?: 'dark' | 'light';
+  editorFontSize?: number;
+  soundEffects?: boolean;
+}
+
 export interface UserProgress {
   completedLessonIds: string[];
   quizScores: Record<string, { score: number; total: number; completedAt: string }>;
   completedProjectIds: string[];
   bookmarks: string[]; // lesson slugs
+  notes?: Record<string, string>; // lesson slug -> note markdown text
   lastLessonSlug?: string;
   totalTimeSpentMinutes: number;
+  assessmentAttempts?: import('./assessment').AssessmentAttempt[];
+  xp: number;
+  claimedXpActivityIds: string[];
+  streak: import('./gamification').StreakData;
+  unlockedAchievementIds: string[];
+  achievementHistory: { id: string; unlockedAt: string }[];
+  dailyGoal: import('./gamification').DailyGoal;
+  weeklyGoal: import('./gamification').WeeklyGoal;
+  preferences?: UserPreferences;
+  lastSyncedAt?: string;
 }
+
+export * from './assessment';
+export * from './ai';
+export * from './gamification';
 
 export type ExecutionStatus =
   | 'idle'

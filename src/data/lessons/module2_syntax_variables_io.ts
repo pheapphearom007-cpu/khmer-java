@@ -169,6 +169,8 @@ double result = (double) a / b; // result គឺ 2.5 ត្រឹមត្រូ
         System.out.println("មធ្យមភាគ: " + average);
     }
 }`,
+        expectedOutput: `ផលបូកពិន្ទុ: 255
+មធ្យមភាគ: 85.0`,
         hintsKm: [
           'បូកពិន្ទុទាំងបីចូលគ្នាដាក់ក្នុងអថេរ `int sum`',
           'គណនាមធ្យមភាគដោយប្រើ `(double) sum / 3` ដើម្បីកុំឱ្យបាត់ទសភាគ',
@@ -442,6 +444,8 @@ if (x == 10) { // ត្រឹមត្រូវ: ប្រើ == សម្រ�
         System.out.println("អត្រាបញ្ចុះតម្លៃ: " + discountPercent + "%");
     }
 }`,
+        expectedOutput: `សិទ្ធិទទួលបានបញ្ចុះតម្លៃ: true
+អត្រាបញ្ចុះតម្លៃ: 20%`,
         hintsKm: [
           'ប្រើ `(totalBill > 50.0) || isVip` សម្រាប់លក្ខខណ្ឌ',
           'ប្រើ Ternary `isEligible ? 20 : 0`',
@@ -712,6 +716,7 @@ if (s1.equals(s2)) { // ត្រឹមត្រូវ: ប្រៀបធៀប
         }
     }
 }`,
+        expectedOutput: 'ពាក្យសម្ងាត់រឹងមាំ (Strong Password)',
         hintsKm: [
           'ប្រើ `password.length() >= 8`',
           'ប្រើ `password.contains("Java")`',
@@ -1002,6 +1007,9 @@ public class Main {
         scanner.close();
     }
 }`,
+        expectedOutput: `ទម្ងន់: 65.5 kg
+កម្ពស់: 1.72 m
+សន្ទស្សន៍ BMI របស់អ្នក: 22.14`,
         hintsKm: [
           'ប្រើ `scanner.nextDouble()` ពីរដងដើម្បីអានទម្ងន់ និងកម្ពស់',
           'គណនា `double bmi = weight / (height * height);`',

@@ -15,6 +15,13 @@ export const supabase = isSupabaseConfigured
       auth: {
         persistSession: true,
         autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'khmer_java_auth_v1',
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10,
+        },
       },
     })
   : null;

@@ -32,12 +32,6 @@ export const ProjectDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <Link to="/projects">
-        <Button variant="ghost" size="xs" leftIcon={<ArrowLeft className="w-3.5 h-3.5" />}>
-          {t('ត្រឡប់ទៅកាន់គម្រោងទាំងអស់', 'Back to All Projects')}
-        </Button>
-      </Link>
-
       <ProjectWorkspace project={project} />
     </div>
   );

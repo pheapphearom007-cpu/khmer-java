@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Search,
-  BookOpen,
   Bookmark,
   Clock,
   ArrowRight,
@@ -65,12 +64,11 @@ export const CurriculumPage: React.FC = () => {
         <div className="space-y-3 max-w-3xl">
           <div className="flex items-center gap-2">
             <Badge variant="brand" size="sm">
-              <BookOpen className="w-3.5 h-3.5 mr-1" />
               {t('កម្មវិធីសិក្សាពេញលេញ', 'Curriculum Roadmap')}
             </Badge>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            {t('កម្មវិធីសិក្សា Java តាមស្តង់ដារ W3Schools', 'W3Schools Java Learning Path')}
+            {t('កម្មវិធីសិក្សាភាសា Java ពេញលេញជាភាសាខ្មែរ', 'Complete Java Learning Path')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
             {t(
@@ -261,7 +259,7 @@ export const CurriculumPage: React.FC = () => {
                               href={lesson.w3schoolsUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              title={t('មើលមេរៀនដើម W3Schools', 'View original W3Schools tutorial')}
+                              title={t('មើលមេរៀនយោងខាងក្រៅលើ W3Schools', 'View external reference on W3Schools')}
                               className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >
                               <ExternalLink className="w-4 h-4" />

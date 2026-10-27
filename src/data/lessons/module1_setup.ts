@@ -159,6 +159,9 @@ Java ដំណើរការតាមគោលការណ៍: Write Once, Run 
         System.out.println("គោលដៅ: ក្លាយជា Java Backend Developer ដ៏ពូកែ!");
     }
 }`,
+        expectedOutput: `ឈ្មោះ: សុខ សំណាង
+មុខវិជ្ជា: វិទ្យាសាស្ត្រកុំព្យូទ័រ
+គោលដៅ: ក្លាយជា Java Backend Developer ដ៏ពូកែ!`,
         hintsKm: [
           'ប្រើពាក្យបញ្ជា System.out.println("អត្ថបទនៅទីនេះ");',
           'កុំភ្លេចសញ្ញា ; (semicolon) នៅចុងបន្ទាត់នីមួយៗ',
@@ -410,31 +413,33 @@ $ java Main        // Run ដោយមិនបាច់ដាក់កន្ទ
       ],
       exercise: {
         id: 'ex-jvm-1',
-        titleKm: 'សរសេរកូដបង្ហាញព័ត៌មានអ្នកប្រើប្រាស់ពី System Properties',
-        titleEn: 'Query User System Properties',
-        descriptionKm: 'សូមសរសេរកូដដើម្បីបង្ហាញ User Working Directory (`user.dir`) និង File Encoding (`file.encoding`) ដោយប្រើ System.getProperty()។',
-        descriptionEn: 'Write Java code to query and print the user working directory and file encoding via System.getProperty().',
+        titleKm: 'សរសេរកូដពិនិត្យ System Properties របស់ Java',
+        titleEn: 'Query Java System Properties',
+        descriptionKm: 'សូមសរសេរកូដដើម្បីពិនិត្យ JVM Properties ដោយបង្ហាញថា Java Runtime និង File Encoding ដំណើរការត្រឹមត្រូវ (មិន null)។',
+        descriptionEn: 'Write Java code to query JVM properties confirming Java Runtime and File Encoding are properly configured.',
         starterCode: `public class Main {
     public static void main(String[] args) {
-        // ប្រើ System.getProperty("user.dir") និង System.getProperty("file.encoding")
+        // ពិនិត្យ System.getProperty("java.version") និង System.getProperty("file.encoding")
         
     }
 }`,
         solutionCode: `public class Main {
     public static void main(String[] args) {
-        String workDir = System.getProperty("user.dir");
-        String encoding = System.getProperty("file.encoding");
-        System.out.println("Working Directory: " + workDir);
-        System.out.println("File Encoding: " + encoding);
+        boolean hasJava = System.getProperty("java.version") != null;
+        boolean hasEncoding = System.getProperty("file.encoding") != null;
+        System.out.println("Java Runtime: " + (hasJava ? "Ready" : "Missing"));
+        System.out.println("Encoding Configured: " + (hasEncoding ? "Yes" : "No"));
     }
 }`,
+        expectedOutput: `Java Runtime: Ready
+Encoding Configured: Yes`,
         hintsKm: [
-          'ប្រើ System.getProperty("...") ដោយបញ្ចូល key ឈ្មោះ "user.dir"',
-          'បោះពុម្ពលទ្ធផលដោយប្រើ System.out.println()',
+          'ប្រើ System.getProperty("java.version") != null ដើម្បីផ្ទៀងផ្ទាត់',
+          'បោះពុម្ពលទ្ធផលដោយប្រើ System.out.println() តាមទម្រង់ដែលបានកំណត់',
         ],
         hintsEn: [
-          'Call System.getProperty("user.dir")',
-          'Print results using System.out.println()',
+          'Check System.getProperty("java.version") != null',
+          'Print results using System.out.println() matching expected output',
         ],
       },
       practiceQuestions: [
@@ -685,6 +690,8 @@ public class Main {
         System.out.println("ពិន្ទុ: " + score);
     }
 }`,
+        expectedOutput: `កូដនេះត្រូវបានជួសជុលរួចរាល់!
+ពិន្ទុ: 100`,
         hintsKm: [
           'ប្តូរ `class main` ទៅជា `class Main` (អក្សរធំ M)',
           'បន្ថែមសញ្ញា ; នៅចុងបន្ទាត់ System.out.println និង int score = 100',

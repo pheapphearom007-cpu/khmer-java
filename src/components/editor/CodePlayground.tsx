@@ -4,6 +4,8 @@ import { OutputPanel } from './OutputPanel';
 import { executionService } from '../../services/executionService';
 import { ExecutionResult } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAITutor } from '../../context/AITutorContext';
+import { useProgress } from '../../context/ProgressContext';
 import { ALL_LESSONS, CURRICULUM_MODULES } from '../../data/curriculum';
 import {
   Sparkles,
@@ -16,6 +18,10 @@ import {
   Server,
   Code2,
   X,
+  Bot,
+  Bug,
+  Lightbulb,
+  Flame,
 } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
@@ -162,6 +168,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
   initialExpectedOutput,
 }) => {
   const { t, language } = useLanguage();
+  const { openTutor } = useAITutor();
+  const { logLearningActivity } = useProgress();
 
   // Load saved draft if exists, otherwise fallback to initialCode or first template
   const [savedDraft, setSavedDraft] = useState<string | null>(() => {
@@ -205,6 +213,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
   const handleRun = async (codeToRun: string) => {
     setIsRunning(true);
     try {
+      logLearningActivity('playground_run');
       const res = await executionService.executeJava({
         code: codeToRun,
         stdin,
@@ -225,6 +234,19 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
       setIsRunning(false);
     }
   };
+
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showDiscardConfirm) setShowDiscardConfirm(false);
+        else if (showSettingsModal) setShowSettingsModal(false);
+        else if (showLessonSelector) setShowLessonSelector(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showDiscardConfirm, showSettingsModal, showLessonSelector]);
 
   // Guard action when code is dirty
   const runWithDiscardGuard = (action: () => void) => {
@@ -393,6 +415,80 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
             ))}
           </div>
         </div>
+
+        {/* AI Java Tutor Contextual Action Bar in Playground */}
+        <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+          <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold">
+            <Bot className="w-4 h-4" />
+            <span>{t('លោកគ្រូ Java AI ជំនួយការ៖', 'Java AI Tutor Actions:')}</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() =>
+                openTutor({
+                  code,
+                  action: 'explain_code',
+                })
+              }
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+              <span>{t('Explain Code', 'Explain Code')}</span>
+            </button>
+
+            <button
+              onClick={() =>
+                openTutor({
+                  code,
+                  error: result?.stderr,
+                  action: 'find_bug',
+                })
+              }
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+            >
+              <Bug className="w-3.5 h-3.5 text-amber-500" />
+              <span>{t('Find the Bug', 'Find the Bug')}</span>
+            </button>
+
+            <button
+              onClick={() =>
+                openTutor({
+                  code,
+                  action: 'give_hint',
+                })
+              }
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+            >
+              <Lightbulb className="w-3.5 h-3.5 text-emerald-500" />
+              <span>{t('Give Me a Hint', 'Give Me a Hint')}</span>
+            </button>
+
+            <button
+              onClick={() =>
+                openTutor({
+                  action: 'simplify',
+                })
+              }
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+              <span>{t('Simplify', 'Simplify')}</span>
+            </button>
+
+            <button
+              onClick={() =>
+                openTutor({
+                  action: 'generate_practice',
+                })
+              }
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+            >
+              <Flame className="w-3.5 h-3.5 text-purple-500" />
+              <span>{t('Generate Practice', 'Generate Practice')}</span>
+            </button>
+          </div>
+        </div>
       </Card>
 
       {/* Editor & Output Split Layout */}
@@ -426,15 +522,24 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
       {/* MODAL 1: Load Example From Curriculum Lessons */}
       {showLessonSelector && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl max-h-[85vh] flex flex-col">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lesson-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans animate-fade-in"
+          onClick={() => setShowLessonSelector(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
-                  <BookOpen className="w-4 h-4" />
+                  <BookOpen className="w-4 h-4" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                  <h3 id="lesson-modal-title" className="font-extrabold text-slate-900 dark:text-white text-base">
                     {t('ជ្រើសរើសឧទាហរណ៍ពីមេរៀន (Load Lesson Example)', 'Load Example from Curriculum')}
                   </h3>
                   <p className="text-xs text-slate-500">
@@ -445,9 +550,10 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
               <button
                 onClick={() => setShowLessonSelector(false)}
+                aria-label={t('បិទ', 'Close')}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -489,15 +595,24 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
       {/* MODAL 2: Sandbox Runner Configuration & Setup Guide */}
       {showSettingsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="settings-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans animate-fade-in"
+          onClick={() => setShowSettingsModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center">
-                  <Server className="w-4 h-4" />
+                  <Server className="w-4 h-4" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                  <h3 id="settings-modal-title" className="font-extrabold text-slate-900 dark:text-white text-base">
                     {t('ការកំណត់ Sandbox Execution', 'Java Sandbox Execution Settings')}
                   </h3>
                   <p className="text-xs text-slate-500">
@@ -508,9 +623,10 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
               <button
                 onClick={() => setShowSettingsModal(false)}
+                aria-label={t('បិទ', 'Close')}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -611,14 +727,23 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
       {/* MODAL 3: Discard Unsaved Changes Confirmation Warning */}
       {showDiscardConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="discard-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans animate-fade-in"
+          onClick={() => setShowDiscardConfirm(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-5 h-5" />
+                <AlertTriangle className="w-5 h-5" aria-hidden="true" />
               </div>
               <div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 id="discard-modal-title" className="font-extrabold text-slate-900 dark:text-white text-base">
                   {t('បោះបង់កូដដែលបានកែប្រែមែនទេ?', 'Discard Unsaved Changes?')}
                 </h3>
                 <p className="text-xs text-slate-500">

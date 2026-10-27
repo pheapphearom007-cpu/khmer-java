@@ -5,8 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build:client": "tsc && vite build",
+    "build:server": "esbuild server/prodServer.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/server.js",
+    "build": "tsc && vite build && esbuild server/prodServer.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/server.js",
+    "start": "node dist/server.js",
+    "preview": "vite preview",
+    "test": "NODE_OPTIONS='--dns-result-order=ipv4first' npx tsx test/verify_platform.ts && NODE_OPTIONS='--dns-result-order=ipv4first' npx tsx test/verify_assessment_and_ai.ts && NODE_OPTIONS='--dns-result-order=ipv4first' npx tsx test/verify_gamification_and_dashboard.ts && NODE_OPTIONS='--dns-result-order=ipv4first' npx tsx test/verify_playground.ts && npx tsx test/verify_back_button.ts && npx tsx test/verify_cloud_sync.ts",
+    "test:sync": "npx tsx test/verify_cloud_sync.ts",
+    "test:backbutton": "npx tsx test/verify_back_button.ts",
+    "test:release": "NODE_OPTIONS='--dns-result-order=ipv4first' npx tsx test/verify_production_release.ts && npx tsx test/verify_cloud_sync.ts"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
