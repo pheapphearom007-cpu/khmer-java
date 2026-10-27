@@ -10,7 +10,7 @@ services:
     runtime: node
     plan: free
     region: singapore # Nearest low-latency region for Cambodian learners
-    buildCommand: npm install --production=false && npm run build
+    buildCommand: npm install --production=false --no-audit --no-fund && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
