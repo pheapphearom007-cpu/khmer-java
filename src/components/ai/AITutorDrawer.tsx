@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Bot,
-  Sparkles,
-  Bug,
-  Lightbulb,
   Send,
   X,
   Copy,
@@ -11,8 +8,6 @@ import {
   RotateCcw,
   AlertCircle,
   Loader2,
-  BookOpen,
-  Flame,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { aiTutorService } from '../../services/aiTutorService';
@@ -241,45 +236,40 @@ export const AITutorDrawer: React.FC<AITutorDrawerProps> = ({
         <button
           disabled={isLoading}
           onClick={() => handleSendMessage(t('សូមពន្យល់កូដមួយជួរៗ', 'Please explain this code line by line'), 'explain_code')}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-rose-500 hover:text-rose-600 dark:hover:text-rose-400 font-medium whitespace-nowrap transition-all shadow-2xs"
+          className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-rose-500 hover:text-rose-600 dark:hover:text-rose-400 font-medium whitespace-nowrap transition-all shadow-2xs"
         >
-          <BookOpen className="w-3.5 h-3.5 text-rose-500" />
           <span>{t('Explain Code', 'Explain Code')}</span>
         </button>
 
         <button
           disabled={isLoading}
           onClick={() => handleSendMessage(t('សូមស្វែងរកកំហុស និងវិធីកែប្រែ', 'Please find the bug and show how to fix it'), 'find_bug')}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400 font-medium whitespace-nowrap transition-all shadow-2xs"
+          className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400 font-medium whitespace-nowrap transition-all shadow-2xs"
         >
-          <Bug className="w-3.5 h-3.5 text-amber-500" />
           <span>{t('Find Bug', 'Find the Bug')}</span>
         </button>
 
         <button
           disabled={isLoading}
           onClick={() => handleSendMessage(t('សូមផ្តល់តម្រុយជំនួយ', 'Give me a hint'), 'give_hint')}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium whitespace-nowrap transition-all shadow-2xs"
+          className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium whitespace-nowrap transition-all shadow-2xs"
         >
-          <Lightbulb className="w-3.5 h-3.5 text-emerald-500" />
           <span>{t('Give Hint', 'Give Me a Hint')}</span>
         </button>
 
         <button
           disabled={isLoading}
           onClick={() => handleSendMessage(t('សូមពន្យល់ឱ្យកាន់តែងាយ', 'Simplify this explanation'), 'simplify')}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 font-medium whitespace-nowrap transition-all shadow-2xs"
+          className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 font-medium whitespace-nowrap transition-all shadow-2xs"
         >
-          <Sparkles className="w-3.5 h-3.5 text-sky-500" />
           <span>{t('Simplify', 'Simplify')}</span>
         </button>
 
         <button
           disabled={isLoading}
           onClick={() => handleSendMessage(t('សូមបង្កើតលំហាត់អនុវត្តថ្មី', 'Generate a practice exercise'), 'generate_practice')}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 font-medium whitespace-nowrap transition-all shadow-2xs"
+          className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 font-medium whitespace-nowrap transition-all shadow-2xs"
         >
-          <Flame className="w-3.5 h-3.5 text-purple-500" />
           <span>{t('Practice', 'Generate Practice')}</span>
         </button>
       </div>

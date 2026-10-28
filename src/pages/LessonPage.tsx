@@ -24,8 +24,6 @@ import {
   ArrowLeft,
   ArrowRight,
   ExternalLink,
-  Code2,
-  AlertTriangle,
   Lightbulb,
   Check,
   ListTree,
@@ -411,9 +409,8 @@ export const LessonPage: React.FC = () => {
           {/* Syntax Code Block */}
           {lesson.syntax && (
             <div className="space-y-2 pt-2">
-              <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider flex items-center gap-2">
-                <Code2 className="w-4 h-4 text-rose-500" />
-                <span>{t('ទម្រង់វេយ្យាករណ៍ (Syntax Structure)', 'Syntax Structure')}</span>
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
+                {t('ទម្រង់វេយ្យាករណ៍ (Syntax Structure)', 'Syntax Structure')}
               </h4>
               <pre className="p-4 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs sm:text-sm overflow-x-auto border border-slate-800">
                 <code>{lesson.syntax}</code>
@@ -623,8 +620,7 @@ export const LessonPage: React.FC = () => {
         {/* Section: Common Mistakes & Pitfalls */}
         {lesson.commonMistakes.length > 0 && (
           <section id="sec-mistakes" className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
-            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
-              <AlertTriangle className="w-5 h-5 shrink-0" />
+            <div className="text-rose-600 dark:text-rose-400">
               <h3 className="font-bold text-slate-900 dark:text-white text-base">
                 {t('កំហុសដែលឧស្សាហ៍ជួបប្រទះ (Common Mistakes & Pitfalls)', 'Common Mistakes & Pitfalls')}
               </h3>

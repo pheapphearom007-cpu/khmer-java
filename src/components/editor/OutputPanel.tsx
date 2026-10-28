@@ -10,9 +10,7 @@ import {
   Copy,
   Check,
   Lightbulb,
-  FileCode,
   Bug,
-  Split,
   Settings,
   HelpCircle,
 } from 'lucide-react';
@@ -139,7 +137,6 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
       {/* Top Header Status Bar */}
       <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-slate-900 border-b border-slate-800 font-sans">
         <div className="flex items-center gap-2 min-w-0">
-          <Terminal className="w-4 h-4 text-rose-500 shrink-0" />
           <span className="font-bold text-slate-200 text-xs sm:text-sm">Console Output</span>
 
           {/* Status Badge */}
@@ -230,23 +227,22 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
       <div className="flex items-center gap-1 px-3 py-1.5 bg-slate-900/60 border-b border-slate-800/80 font-sans text-xs overflow-x-auto">
         <button
           onClick={() => setActiveTab('output')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
+          className={`flex items-center px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
             activeTab === 'output'
               ? 'bg-slate-800 text-white border border-slate-700'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
-          <Terminal className="w-3 h-3 text-emerald-400" />
           <span>{t('លទ្ធផល (Output)', 'Program Output')}</span>
           {result?.stdout && (
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block ml-1.5" />
           )}
         </button>
 
         {/* Compilation Error Tab (shows indicator if errors exist) */}
         <button
           onClick={() => setActiveTab('compile')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
+          className={`flex items-center px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
             activeTab === 'compile'
               ? 'bg-rose-950/80 text-rose-300 border border-rose-800'
               : result?.compilationError
@@ -254,10 +250,9 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
-          <FileCode className="w-3 h-3 text-rose-400" />
           <span>{t('កំហុស Compile', 'Compile Errors')}</span>
           {result?.compilationError && (
-            <span className="px-1.5 py-0.2 rounded-full bg-rose-900 text-rose-200 text-[10px] font-bold">
+            <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-rose-900 text-rose-200 text-[10px] font-bold">
               !
             </span>
           )}
@@ -266,7 +261,7 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
         {/* Runtime Error Tab */}
         <button
           onClick={() => setActiveTab('runtime')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
+          className={`flex items-center px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
             activeTab === 'runtime'
               ? 'bg-amber-950/80 text-amber-300 border border-amber-800'
               : result?.runtimeError
@@ -274,10 +269,9 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
-          <Bug className="w-3 h-3 text-amber-400" />
           <span>{t('កំហុសពេលរត់ (Runtime)', 'Runtime Errors')}</span>
           {result?.runtimeError && (
-            <span className="px-1.5 py-0.2 rounded-full bg-amber-900 text-amber-200 text-[10px] font-bold">
+            <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-amber-900 text-amber-200 text-[10px] font-bold">
               !
             </span>
           )}
@@ -287,17 +281,16 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
         {expectedOutput && (
           <button
             onClick={() => setActiveTab('compare')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
+            className={`flex items-center px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
               activeTab === 'compare'
                 ? 'bg-indigo-950/80 text-indigo-300 border border-indigo-800'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
-            <Split className="w-3 h-3 text-indigo-400" />
             <span>{t('ប្រៀបធៀបលទ្ធផល', 'Compare Output')}</span>
             {result && (
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`ml-1.5 w-2 h-2 rounded-full ${
                   isMatch ? 'bg-emerald-400' : 'bg-amber-400'
                 }`}
               />
@@ -308,7 +301,7 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
         {/* Stdin Tab */}
         <button
           onClick={() => setActiveTab('stdin')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ml-auto ${
+          className={`flex items-center px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ml-auto ${
             activeTab === 'stdin'
               ? 'bg-slate-800 text-amber-300 border border-amber-800/80'
               : stdin
@@ -316,7 +309,6 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
-          <ArrowRight className="w-3 h-3 text-amber-400" />
           <span>Stdin {stdin ? '●' : ''}</span>
         </button>
       </div>

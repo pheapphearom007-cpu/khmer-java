@@ -17,7 +17,6 @@ import {
   Lightbulb,
   Play,
   KeyRound,
-  Trophy,
   AlertTriangle,
 } from 'lucide-react';
 
@@ -233,9 +232,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
         <div className="lg:col-span-5 space-y-6">
           {/* Learning Objectives */}
           <Card className="p-5 space-y-3">
-            <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-amber-500" />
-              <span>{t('គោលបំណងនៃការរៀនសូត្រ', 'Learning Objectives')}</span>
+            <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+              {t('គោលបំណងនៃការរៀនសូត្រ', 'Learning Objectives')}
             </h3>
             <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
               {objectives.map((obj, i) => (
@@ -250,9 +248,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
           {/* Requirements Checklist (Persisted in LocalStorage) */}
           <Card className="p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                <span>{t('លក្ខខណ្ឌតម្រូវនៃគម្រោង (Checklist)', 'Project Requirements')}</span>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                {t('លក្ខខណ្ឌតម្រូវនៃគម្រោង (Checklist)', 'Project Requirements')}
               </h3>
               <Badge variant="neutral" size="xs">
                 {Object.values(checkedRequirements).filter(Boolean).length} / {project.requirements.length}
@@ -288,9 +285,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ project }) =
           {/* Test Cases Runner with Automated Diff/Verification */}
           {project.testCases.length > 0 && (
             <Card className="p-5 space-y-3">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-                <Play className="w-4 h-4 text-rose-500" />
-                <span>{t('ករណីតេស្តស្វ័យប្រវត្ត (Automated Test Cases)', 'Automated Test Cases')}</span>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                {t('ករណីតេស្តស្វ័យប្រវត្ត (Automated Test Cases)', 'Automated Test Cases')}
               </h3>
               <div className="space-y-3">
                 {project.testCases.map((tc, idx) => {
