@@ -9,7 +9,6 @@ import {
   Mail,
   User,
   ArrowRight,
-  Database,
   AlertCircle,
   CheckCircle2,
   KeyRound,
@@ -200,16 +199,6 @@ export const AuthPage: React.FC = () => {
             {mode === 'reset' && t('បញ្ចូលអ៊ីមែលដើម្បីទទួលតំណភ្ជាប់ផ្លាស់ប្តូរពាក្យសម្ងាត់', 'Enter your email to receive a password reset link')}
             {mode === 'update-password' && t('សូមបញ្ចូលពាក្យសម្ងាត់ថ្មីយ៉ាងតិច ៦ តួអក្សរសម្រាប់គណនីរបស់អ្នក', 'Enter your new password (min. 6 characters) to secure your account')}
           </p>
-        </div>
-
-        {/* Database Sync Status Notice */}
-        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs flex items-center gap-2 text-slate-600 dark:text-slate-300">
-          <Database className={`w-4 h-4 shrink-0 ${isSupabaseConfigured ? 'text-emerald-500' : 'text-amber-500'}`} />
-          <span>
-            {isSupabaseConfigured
-              ? t('Supabase Cloud Database ត្រូវបានកំណត់រួចរាល់។', 'Supabase Cloud Database is configured and active.')
-              : t('ប្រព័ន្ធដំណើរការក្នុង Local Mode (ទិន្នន័យរក្សាទុកក្នុង Browser)។', 'Running in Local Mode (progress saved in browser).')}
-          </span>
         </div>
 
         {/* Alerts */}
