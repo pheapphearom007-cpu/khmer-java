@@ -26,6 +26,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
   signOut: (options?: SignOutOptions) => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
   updatePreferences: (prefs: Partial<UserPreferences>) => Promise<{ error: Error | null }>;
   updateDisplayName: (displayName: string) => Promise<{ error: Error | null }>;
   useGuestMode: () => void;
@@ -35,6 +36,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LOCAL_GUEST_KEY = 'khmer_java_guest_user';
+
+function getDeviceId(): string {
+  if (typeof window === 'undefined') return 'server';
+  let id = window.sessionStorage.getItem('khmer_java_device_id');
+  if (!id) {
+    id = 'dev-' + Math.random().toString(36).substring(2, 12);
+    window.sessionStorage.setItem('khmer_java_device_id', id);
+  }
+  return id;
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -163,6 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         case 'SIGNED_IN':
         case 'TOKEN_REFRESHED':
         case 'USER_UPDATED':
+        case 'PASSWORD_RECOVERY':
           if (session?.user) {
             setRawUser(session.user);
             const profile = await fetchCloudProfile(session.user);
@@ -184,6 +196,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
     };
   }, [fetchCloudProfile]);
+
+  // Step 3: Cross-device security listener - terminates session if password was changed on another device
+  useEffect(() => {
+    if (!user?.id || !isSupabaseConfigured || !supabase) return;
+
+    const currentDeviceId = getDeviceId();
+    const securityChannel = supabase
+      .channel(`security-auth-${user.id}`)
+      .on(
+        'broadcast',
+        { event: 'FORCE_LOGOUT_PASSWORD_CHANGED' },
+        async (payload: any) => {
+          if (payload?.payload?.senderDeviceId !== currentDeviceId) {
+            // Password was changed on another device! Terminate this device immediately.
+            await signOut({ scope: 'local' });
+            alert(
+              'ពាក្យសម្ងាត់គណនីរបស់អ្នកត្រូវបានផ្លាស់ប្តូរនៅលើឧបករណ៍មួយផ្សេងទៀត។ វគ្គនេះត្រូវបានបញ្ចប់។ សូមចូលគណនីម្តងទៀត។\n(Your password was updated on another device. Please sign in again with your new password.)'
+            );
+            window.location.href = '/auth';
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (supabase) supabase.removeChannel(securityChannel);
+    };
+  }, [user?.id]);
 
   const signIn = async (email: string, password: string) => {
     if (!isSupabaseConfigured || !supabase) {
@@ -262,6 +302,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       redirectTo: window.location.origin + '/auth?type=recovery',
     });
     return { error };
+  };
+
+  const updatePassword = async (newPassword: string): Promise<{ error: Error | null }> => {
+    if (!isSupabaseConfigured || !supabase) {
+      return {
+        error: new Error('សូមកំណត់ Supabase URL និង Key ជាមុនសិន ដើម្បីប្រើមុខងារនេះ។'),
+      };
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) return { error: new Error(error.message) };
+
+    const currentDeviceId = getDeviceId();
+    const targetUserId = user?.id || rawUser?.id;
+
+    // 1. Instantly broadcast security termination to all other open devices/tabs
+    if (targetUserId) {
+      try {
+        const notifyChannel = supabase.channel(`security-auth-${targetUserId}`);
+        await notifyChannel.subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await notifyChannel.send({
+              type: 'broadcast',
+              event: 'FORCE_LOGOUT_PASSWORD_CHANGED',
+              payload: { senderDeviceId: currentDeviceId },
+            });
+            setTimeout(() => {
+              if (supabase) supabase.removeChannel(notifyChannel);
+            }, 1000);
+          }
+        });
+      } catch (broadcastErr) {
+        console.warn('Realtime security broadcast warning:', broadcastErr);
+      }
+    }
+
+    // 2. Revoke all OTHER refresh tokens and sessions on the Supabase Auth server
+    try {
+      await supabase.auth.signOut({ scope: 'others' });
+    } catch (err) {
+      console.warn('Sign out others warning:', err);
+    }
+
+    return { error: null };
   };
 
   const updatePreferences = async (newPrefs: Partial<UserPreferences>): Promise<{ error: Error | null }> => {
@@ -346,6 +430,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUp,
         signOut,
         resetPassword,
+        updatePassword,
         updatePreferences,
         updateDisplayName,
         useGuestMode,

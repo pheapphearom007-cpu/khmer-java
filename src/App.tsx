@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import { ProgressProvider } from './context/ProgressContext';
@@ -20,6 +20,29 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ 
 const AuthPage = lazy(() => import('./pages/AuthPage').then((m) => ({ default: m.AuthPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
+// Automatically catches Supabase password reset / auth callback tokens landing on root or other pages
+const AuthRedirectHandler: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname !== '/auth') {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      if (
+        hash.includes('type=recovery') ||
+        hash.includes('error=access_denied') ||
+        hash.includes('otp_expired') ||
+        search.includes('type=recovery')
+      ) {
+        navigate(`/auth${search}${hash}`, { replace: true });
+      }
+    }
+  }, [location, navigate]);
+
+  return null;
+};
+
 export const App: React.FC = () => {
   return (
     <LanguageProvider>
@@ -27,6 +50,7 @@ export const App: React.FC = () => {
         <ProgressProvider>
           <AITutorProvider>
             <BrowserRouter>
+              <AuthRedirectHandler />
               <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
                   <Route path="/" element={<Layout />}>
