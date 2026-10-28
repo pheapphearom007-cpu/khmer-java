@@ -238,7 +238,7 @@ export const HomePage: React.FC = () => {
                     to={`/curriculum/${module.lessons[0].slug}`}
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300"
                   >
-                    <span>{t('ចូលរៀនម៉ូឌុលនេះ', 'Explore Module')}</span>
+                    <span>{t('ចូលរៀនឥឡូវនេះ', 'Start Learning Now')}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
