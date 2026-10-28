@@ -8,7 +8,6 @@ import { useAITutor } from '../../context/AITutorContext';
 import { useProgress } from '../../context/ProgressContext';
 import { ALL_LESSONS, CURRICULUM_MODULES } from '../../data/curriculum';
 import {
-  Sparkles,
   Terminal,
   BookOpen,
   Settings,
@@ -19,9 +18,6 @@ import {
   Code2,
   X,
   Bot,
-  Bug,
-  Lightbulb,
-  Flame,
 } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
@@ -394,9 +390,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
         {/* Quick Starter Templates Bar */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-          <span className="text-slate-400 font-semibold flex items-center gap-1 shrink-0">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>{t('គំរូ:', 'Templates:')}</span>
+          <span className="text-slate-400 font-semibold shrink-0">
+            {t('គំរូ:', 'Templates:')}
           </span>
 
           <div className="flex items-center gap-1.5 flex-nowrap">
@@ -431,9 +426,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                   action: 'explain_code',
                 })
               }
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+              className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
             >
-              <BookOpen className="w-3.5 h-3.5 text-rose-500" />
               <span>{t('Explain Code', 'Explain Code')}</span>
             </button>
 
@@ -445,9 +439,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                   action: 'find_bug',
                 })
               }
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+              className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
             >
-              <Bug className="w-3.5 h-3.5 text-amber-500" />
               <span>{t('Find the Bug', 'Find the Bug')}</span>
             </button>
 
@@ -458,9 +451,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                   action: 'give_hint',
                 })
               }
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+              className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
             >
-              <Lightbulb className="w-3.5 h-3.5 text-emerald-500" />
               <span>{t('Give Me a Hint', 'Give Me a Hint')}</span>
             </button>
 
@@ -470,9 +462,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                   action: 'simplify',
                 })
               }
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+              className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
             >
-              <Sparkles className="w-3.5 h-3.5 text-sky-500" />
               <span>{t('Simplify', 'Simplify')}</span>
             </button>
 
@@ -482,9 +473,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                   action: 'generate_practice',
                 })
               }
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
+              className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium transition-all"
             >
-              <Flame className="w-3.5 h-3.5 text-purple-500" />
               <span>{t('Generate Practice', 'Generate Practice')}</span>
             </button>
           </div>
