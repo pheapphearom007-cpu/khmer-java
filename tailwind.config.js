@@ -12,6 +12,10 @@ export default {
         mono: ['"JetBrains Mono"', '"Fira Code"', 'Consolas', 'monospace'],
       },
       colors: {
+        slate: {
+          750: '#293548',
+          850: '#172033',
+        },
         java: {
           50: '#fff1f2',
           100: '#ffe4e6',

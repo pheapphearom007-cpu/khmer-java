@@ -631,7 +631,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
             </div>
 
             {/* Toggle: Enable / Disable Execution */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-750 flex items-center justify-between gap-3 text-xs">
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex items-center justify-between gap-3 text-xs">
               <div>
                 <div className="font-bold text-slate-900 dark:text-white">
                   {t('បើកដំណើរការ Sandbox Execution', 'Enable Sandbox Execution')}

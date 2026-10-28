@@ -233,7 +233,7 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
             activeTab === 'output'
               ? 'bg-slate-800 text-white border border-slate-700'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
           <Terminal className="w-3 h-3 text-emerald-400" />
@@ -251,7 +251,7 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
               ? 'bg-rose-950/80 text-rose-300 border border-rose-800'
               : result?.compilationError
               ? 'text-rose-400 hover:bg-rose-950/40'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
           <FileCode className="w-3 h-3 text-rose-400" />
@@ -271,7 +271,7 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
               ? 'bg-amber-950/80 text-amber-300 border border-amber-800'
               : result?.runtimeError
               ? 'text-amber-400 hover:bg-amber-950/40'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
           <Bug className="w-3 h-3 text-amber-400" />
@@ -290,7 +290,7 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap font-medium ${
               activeTab === 'compare'
                 ? 'bg-indigo-950/80 text-indigo-300 border border-indigo-800'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
             <Split className="w-3 h-3 text-indigo-400" />
@@ -312,8 +312,8 @@ export const OutputPanel: React.FC<OutputPanelProps> = ({
             activeTab === 'stdin'
               ? 'bg-slate-800 text-amber-300 border border-amber-800/80'
               : stdin
-              ? 'text-amber-400 hover:bg-slate-850'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+              ? 'text-amber-400 hover:bg-slate-800'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
           }`}
         >
           <ArrowRight className="w-3 h-3 text-amber-400" />

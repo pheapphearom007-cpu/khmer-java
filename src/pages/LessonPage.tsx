@@ -435,7 +435,7 @@ export const LessonPage: React.FC = () => {
               {lesson.vocabulary.map((vocab, idx) => (
                 <div
                   key={idx}
-                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800 space-y-1.5 transition-all hover:border-rose-300 dark:hover:border-rose-800"
+                  className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 space-y-2 transition-all hover:border-rose-300 dark:hover:border-rose-700 shadow-xs"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono font-bold text-rose-600 dark:text-rose-400 text-xs sm:text-sm">
@@ -445,7 +445,7 @@ export const LessonPage: React.FC = () => {
                       {vocab.khmerTerm}
                     </Badge>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+                  <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-sans">
                     {t(vocab.definitionKm, vocab.definitionEn)}
                   </p>
                 </div>
