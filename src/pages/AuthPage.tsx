@@ -159,7 +159,17 @@ export const AuthPage: React.FC = () => {
         }, 1500);
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'ប្រតិបត្តិការបរាជ័យ');
+      const raw = err.message || 'ប្រតិបត្តិការបរាជ័យ';
+      if (raw.toLowerCase().includes('rate limit')) {
+        setErrorMsg(
+          t(
+            'អ្នកបានស្នើសុំច្រើនដងពេកក្នុងពេលតែមួយ (Email rate limit exceeded)។ សូមរង់ចាំប្រហែល ១ នាទី ឬចូលទៅពិនិត្យមើលអ៊ីមែលដែលបានផ្ញើរួចហើយនៅក្នុង Gmail (Inbox/Spam) របស់អ្នក។',
+            'Email rate limit exceeded: Please wait about 1-2 minutes before requesting again, or check your Gmail inbox/spam for the link already sent.'
+          )
+        );
+      } else {
+        setErrorMsg(raw);
+      }
     } finally {
       setLoading(false);
     }
